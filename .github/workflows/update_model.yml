@@ -1,11 +1,9 @@
 name: Update gas model
 
 on:
-  # Every day at 09:00 UTC
   schedule:
     - cron: "0 9 * * *"
 
-  # Manual button in the Actions tab
   workflow_dispatch:
     inputs:
       dry_run:
@@ -14,7 +12,6 @@ on:
         default: "false"
         type: boolean
 
-  # On-demand via API call (used by the "Refit model now" button in capacity.html)
   repository_dispatch:
     types: [refit-model]
 
@@ -34,19 +31,32 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests numpy scipy
+        run: |
+          pip install --upgrade pip
+          pip install requests numpy scipy
+
+      - name: Verify dependencies
+        run: |
+          python3 -c "import requests, numpy, scipy; from scipy.optimize import curve_fit; print('OK - all imports work')"
 
       - name: Run refit script
         run: python scripts/refit_model.py
+
+      - name: Check summary file exists
+        run: |
+          if [ ! -f /tmp/model_summary.json ]; then
+            echo '{"date":"unknown","alpha":0,"beta":0,"npp":0,"r2":0,"mae":0,"n_datasets":0,"files_changed":false}' > /tmp/model_summary.json
+          fi
+          cat /tmp/model_summary.json
 
       - name: Read model summary
         id: summary
         run: |
           echo "n=$(jq -r .n_datasets /tmp/model_summary.json)" >> $GITHUB_OUTPUT
           echo "r2=$(jq -r .r2 /tmp/model_summary.json)" >> $GITHUB_OUTPUT
-          echo "mae=$(jq -r '.mae / 1000000 | . * 10 | round / 10' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
-          echo "alpha=$(jq -r '.alpha / 1000000 | . * 100 | round / 100' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
-          echo "beta=$(jq -r '.beta / 1000000 | . * 1000 | round / 1000' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "mae=$(jq -r '.mae / 1000000' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "alpha=$(jq -r '.alpha / 1000000' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "beta=$(jq -r '.beta / 1000000' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
           echo "date=$(jq -r .date /tmp/model_summary.json)" >> $GITHUB_OUTPUT
           echo "changed=$(jq -r .files_changed /tmp/model_summary.json)" >> $GITHUB_OUTPUT
 
@@ -62,8 +72,7 @@ jobs:
 
           Trigger: ${{ github.event_name }}
           Datasets: ${{ steps.summary.outputs.n }}
-          α = ${{ steps.summary.outputs.alpha }}M  β = ${{ steps.summary.outputs.beta }}M
-          R² = ${{ steps.summary.outputs.r2 }}  MAE = ${{ steps.summary.outputs.mae }}M gas"
+          R2: ${{ steps.summary.outputs.r2 }}  MAE: ${{ steps.summary.outputs.mae }}M gas"
           git push
 
       - name: No changes
@@ -73,9 +82,6 @@ jobs:
       - name: Dry run output
         if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
         run: |
-          echo "=== DRY RUN — no commit ==="
-          echo "n_datasets : ${{ steps.summary.outputs.n }}"
-          echo "R²         : ${{ steps.summary.outputs.r2 }}"
-          echo "MAE        : ${{ steps.summary.outputs.mae }}M gas"
-          echo "alpha      : ${{ steps.summary.outputs.alpha }}M"
-          echo "beta       : ${{ steps.summary.outputs.beta }}M"
+          echo "DRY RUN - no commit"
+          echo "n_datasets: ${{ steps.summary.outputs.n }}"
+          echo "R2: ${{ steps.summary.outputs.r2 }}"
