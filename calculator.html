@@ -396,7 +396,7 @@ footer a{color:var(--text3)}
 <script>
 const FOC_API='https://foc-observer.va.gg/sql';
 const BASELINE_BLOCK=5864769;
-const MODEL_ALPHA = 157008412,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
+const MODEL_ALPHA = 157008624,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
 function ppGasModel(p){return MODEL_ALPHA+MODEL_BETA*Math.log2(Math.max(1,p));}
 let GAS=null,BF={live:null,low:null,h24:null,d30:null,d90:null,high:null};
 let batching=false,costChart=null,modelChart=null;

@@ -405,7 +405,7 @@ let AVG_BLOCKS_PER_TIPSET = 4.7;
 const TIPSETS_PER_DAY = 2880;
 function gasTargetPerTipset(){ return GAS_TARGET_PER_BLOCK * AVG_BLOCKS_PER_TIPSET; }
 
-const PP_ALPHA = 157008412, PP_BETA = 8.485e6, NPP_GAS = 124e6;
+const PP_ALPHA = 157008624, PP_BETA = 8.485e6, NPP_GAS = 124e6;
 function ppGas(p){ return PP_ALPHA + PP_BETA * Math.log2(Math.max(1,p)); }
 
 // Real piece distribution (630 datasets, FOC Observer April 2026)
@@ -423,7 +423,7 @@ function weightedAvgGasPerDataset(){
 
 // Historical 30-day data (FOC Observer, queried 2026-04-22)
 const HIST = [
-  {day:'Mar 23',ds:147,gas:28544148454},
+  {day:'Mar 23',ds:146,gas:28374045675},
   {day:'Mar 24',ds:301,gas:59205899682},
   {day:'Mar 25',ds:313,gas:61641419226},
   {day:'Mar 26',ds:325,gas:63705051489},
@@ -453,7 +453,7 @@ const HIST = [
   {day:'Apr 19',ds:286,gas:56125445898},
   {day:'Apr 20',ds:284,gas:55780876667},
   {day:'Apr 21',ds:289,gas:56870963583},
-  {day:'Apr 22',ds:108,gas:21368375346},
+  {day:'Apr 22',ds:109,gas:21546313280},
 ];
 
 let liveBF=100, liveOtherGasPerBlock=0, forecastChart=null, trendChart=null, sensitivityChart=null, forecastHorizon=90;
