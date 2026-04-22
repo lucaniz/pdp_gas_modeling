@@ -1,11 +1,11 @@
 name: Update gas model
 
 on:
-  # ── 1. Scheduled: every Monday at 09:00 UTC ────────────────────────────────
+  # Every day at 09:00 UTC
   schedule:
-    - cron: "0 9 * * 1"
+    - cron: "0 9 * * *"
 
-  # ── 2. Manual: click "Run workflow" in the Actions tab ─────────────────────
+  # Manual button in the Actions tab
   workflow_dispatch:
     inputs:
       dry_run:
@@ -14,17 +14,7 @@ on:
         default: "false"
         type: boolean
 
-  # ── 3. On-demand via API call ───────────────────────────────────────────────
-  # Anyone with a GitHub token can trigger this remotely:
-  #
-  #   curl -X POST \
-  #     -H "Authorization: token YOUR_GITHUB_TOKEN" \
-  #     -H "Accept: application/vnd.github.v3+json" \
-  #     https://api.github.com/repos/lucaniz/pdp_gas_modeling/dispatches \
-  #     -d '{"event_type": "refit-model"}'
-  #
-  # You can also add a button in capacity.html that calls a serverless function
-  # (e.g. Vercel Edge Function) which holds the token and fires this curl.
+  # On-demand via API call (used by the "Refit model now" button in capacity.html)
   repository_dispatch:
     types: [refit-model]
 
