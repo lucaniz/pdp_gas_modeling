@@ -120,7 +120,7 @@ footer a{color:var(--text3)}
 
 
 <!-- ── SECTION: FULL HISTORY CHART ─────────────────────────────────────────── -->
-<div class="section-header" style="margin-top:.25rem">0. Filecoin total gas — full history Oct 2020 → today (Ggas/day)</div>
+<div class="section-header" style="margin-top:.25rem">0. Filecoin total gas — full history Oct 2020 → today (Ggas/day) <span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:8px">Data as of <strong style="color:var(--text2)">21 Apr 2026</strong> · <a href="https://dashboard.starboard.ventures/dashboard/analytics#transactionsusage-gas-usage" target="_blank" style="color:var(--blue);text-decoration:none">update ↗</a></span></div>
 <div class="card">
   <div class="cd">
     Daily gas consumption across the entire Filecoin network from launch to today, from <strong>Starboard</strong>. The red dashed line is the daily gas target (70,560 Ggas/day = 5B/block × 4.9 blocks × 2,880 tipsets). <strong>The network peaked at ~51,000 Ggas in Dec 2024 (72% of target) and has since collapsed to ~5,000–15,000 Ggas (7–22% of target).</strong> FWSS does not appear — it's below the resolution of this chart.
@@ -309,14 +309,14 @@ footer a{color:var(--text3)}
 
 <footer>
   FWSS Network Headroom Tool &nbsp;&middot;&nbsp;
-  Network gas: <a href="https://dashboard.starboard.ventures">Starboard</a> (Spacescope CSV, daily T-1) &nbsp;&middot;&nbsp;
+  Network gas: <a href="https://dashboard.starboard.ventures">Starboard</a> CSV (21 Apr 2026) &nbsp;&middot;&nbsp;
   FWSS gas: <a href="https://foc-observer.va.gg">FOC Observer MCP</a> &nbsp;&middot;&nbsp;
   Built by Luca &nbsp;&middot;&nbsp; <a href="index.html">← index</a>
 </footer>
 </div>
 
 <script>
-// ── data (from Starboard CSV + FOC Observer, April 2026) ─────────────────────
+// ── data (from Starboard CSV 21 Apr 2026 + FOC Observer) ──────────────────
 const DATA = [
   {d:'2026-03-22',wp:736.6,seal:1665.2,psd:1458.5,other:6113.6,net:9973.8,fwss:0,head:60586.2,tgt:70560},
   {d:'2026-03-23',wp:755.6,seal:1810.8,psd:1052.2,other:11565.2,net:15183.7,fwss:36.6,head:55339.7,tgt:70560},
