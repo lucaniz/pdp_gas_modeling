@@ -1,0 +1,91 @@
+name: Update gas model
+
+on:
+  # ── 1. Scheduled: every Monday at 09:00 UTC ────────────────────────────────
+  schedule:
+    - cron: "0 9 * * 1"
+
+  # ── 2. Manual: click "Run workflow" in the Actions tab ─────────────────────
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — print results but do not commit"
+        required: false
+        default: "false"
+        type: boolean
+
+  # ── 3. On-demand via API call ───────────────────────────────────────────────
+  # Anyone with a GitHub token can trigger this remotely:
+  #
+  #   curl -X POST \
+  #     -H "Authorization: token YOUR_GITHUB_TOKEN" \
+  #     -H "Accept: application/vnd.github.v3+json" \
+  #     https://api.github.com/repos/lucaniz/pdp_gas_modeling/dispatches \
+  #     -d '{"event_type": "refit-model"}'
+  #
+  # You can also add a button in capacity.html that calls a serverless function
+  # (e.g. Vercel Edge Function) which holds the token and fires this curl.
+  repository_dispatch:
+    types: [refit-model]
+
+jobs:
+  refit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests numpy scipy
+
+      - name: Run refit script
+        run: python scripts/refit_model.py
+
+      - name: Read model summary
+        id: summary
+        run: |
+          echo "n=$(jq -r .n_datasets /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "r2=$(jq -r .r2 /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "mae=$(jq -r '.mae / 1000000 | . * 10 | round / 10' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "alpha=$(jq -r '.alpha / 1000000 | . * 100 | round / 100' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "beta=$(jq -r '.beta / 1000000 | . * 1000 | round / 1000' /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "date=$(jq -r .date /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+          echo "changed=$(jq -r .files_changed /tmp/model_summary.json)" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: >
+          steps.summary.outputs.changed == 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.dry_run != 'true')
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add calculator.html capacity.html README.md
+          git commit -m "chore: refit gas model — ${{ steps.summary.outputs.date }}
+
+          Trigger: ${{ github.event_name }}
+          Datasets: ${{ steps.summary.outputs.n }}
+          α = ${{ steps.summary.outputs.alpha }}M  β = ${{ steps.summary.outputs.beta }}M
+          R² = ${{ steps.summary.outputs.r2 }}  MAE = ${{ steps.summary.outputs.mae }}M gas"
+          git push
+
+      - name: No changes
+        if: steps.summary.outputs.changed == 'false'
+        run: echo "Coefficients unchanged — nothing to commit."
+
+      - name: Dry run output
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: |
+          echo "=== DRY RUN — no commit ==="
+          echo "n_datasets : ${{ steps.summary.outputs.n }}"
+          echo "R²         : ${{ steps.summary.outputs.r2 }}"
+          echo "MAE        : ${{ steps.summary.outputs.mae }}M gas"
+          echo "alpha      : ${{ steps.summary.outputs.alpha }}M"
+          echo "beta       : ${{ steps.summary.outputs.beta }}M"
