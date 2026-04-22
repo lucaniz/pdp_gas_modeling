@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FWSS gas model refit script.
+FWSS gas model refit script. 
 
 Queries FOC Observer for all provePossession transactions since FWSS v1.2.0,
 refits the logarithmic model gas = alpha + beta * log2(pieces),
