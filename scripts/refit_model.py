@@ -71,7 +71,8 @@ def fetch_npp_data():
         SELECT
           AVG(gas_used) AS avg_gas,
           COUNT(*) AS txns,
-          STDDEV(gas_used) AS stddev_gas
+          MIN(gas_used) AS min_gas,
+          MAX(gas_used) AS max_gas
         FROM pdp_next_proving_period
         WHERE block_number >= {BASELINE_BLOCK}
           AND gas_used < 500000000
@@ -79,8 +80,7 @@ def fetch_npp_data():
     r = rows[0]
     avg = float(r["avg_gas"])
     txns = int(r["txns"])
-    std = float(r["stddev_gas"] or 0)
-    print(f"  nextProvingPeriod: {avg/1e6:.1f}M gas  (n={txns}, stddev={std/1e6:.1f}M)")
+    print(f"  nextProvingPeriod: {avg/1e6:.1f}M gas  (n={txns})")
     return avg, txns
 
 
