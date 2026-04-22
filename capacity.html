@@ -215,11 +215,11 @@ footer a{color:var(--text3)}
 <!-- ── SECTION 0: NETWORK GAS CONTEXT ──────────────────────────────────── -->
 <div class="section-header">0. Filecoin network gas — total picture</div>
 <div class="cd" style="margin-bottom:.75rem;font-size:12px;color:var(--text2)">
-  Total network gas by actor type, from <strong>Spacescope</strong> (daily data, T-1). This is what's already consuming the gas budget <em>before</em> FWSS. FWSS is shown at the bottom for comparison. Data requires a Bearer token — using the public Spacescope test token.
+  Total network gas by actor type from <strong>Starboard CSV</strong> (2026-04-21, most recent day available). This is what's already consuming the gas budget <em>before</em> FWSS. FWSS (from FOC Observer) is shown at the bottom for comparison.
 </div>
 
 <div class="g4" style="margin-bottom:1rem" id="network-gas-metrics">
-  <div class="metric"><div class="ml">Total network gas/day</div><div class="mv" id="ng-total">Loading...</div><div class="ms">all actors · T-1 (Spacescope)</div></div>
+  <div class="metric"><div class="ml">Total network gas/day</div><div class="mv" id="ng-total">Loading...</div><div class="ms">all actors · 2026-04-21 · Starboard CSV</div></div>
   <div class="metric"><div class="ml">WindowPoSt (storage proofs)</div><div class="mv" id="ng-windowpost">—</div><div class="ms">SP proving existing storage</div></div>
   <div class="metric"><div class="ml">Sealing (PreCommit + ProveCommit)</div><div class="mv" id="ng-sealing">—</div><div class="ms">onboarding new storage</div></div>
   <div class="metric"><div class="ml">FWSS (PDP proving)</div><div class="mv ok" id="ng-fwss">—</div><div class="ms">today · FOC Observer</div></div>
@@ -231,7 +231,7 @@ footer a{color:var(--text3)}
   <div class="ct">Network gas breakdown — by actor type</div>
   <div class="cd">Gas used per day by each actor category. The gas <strong>target</strong> is 5B gas/block × ~4.9 blocks/tipset × 2,880 tipsets/day = <strong>~70.6 trillion gas/day</strong>. FWSS is a sliver at the bottom.</div>
   <div id="ng-bars">
-    <div style="font-size:12px;color:var(--text2);padding:1rem 0;text-align:center" id="ng-loading">Loading Spacescope data...</div>
+    <div style="font-size:12px;color:var(--text2);padding:1rem 0;text-align:center" id="ng-loading">Loading network gas data...</div>
   </div>
   <div class="note nb" id="ng-note" style="display:none"></div>
 </div>
@@ -788,7 +788,7 @@ async function fetchAll(){
   fetchNetworkGasSpacescope(); // async, separate — doesn't block main load
 }
 
-// ── Spacescope network gas ────────────────────────────────────────────────────
+// ── Network gas (hardcoded from Starboard CSV) ──────────────────────────────
 // Network gas data source: Starboard CSV (hardcoded, update manually)
 // Spacescope token removed — using hardcoded Starboard CSV data instead
 
@@ -886,7 +886,7 @@ function renderCapacityThresholds(networkTotal, dailyTarget){
 
   const rows = scenarios.map(s=>{
     const gasNeeded = s.special ? currentFWSS : s.pct/100*dailyTarget;
-    const dsNeeded  = s.special ? currentDS   : Math.round(gasNeeded/avgGasPerDS/TIPSETS_PER_DAY);
+    const dsNeeded  = s.special ? currentDS   : Math.round(gasNeeded/avgGasPerDS);
     const piecesNeeded = Math.round(dsNeeded * piecesPerDS);
     const tib = (dsNeeded * bytesPerDS / (1024**4)).toFixed(2);
     const multDS = (dsNeeded/currentDS).toFixed(0);
