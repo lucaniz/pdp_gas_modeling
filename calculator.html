@@ -390,43 +390,6 @@ footer a{color:var(--text3)}
   </div>
 </div>
 
-</div><!-- end tab-calculator -->
-
-<div id="tab-settlement" class="tab-pane">
-<div class="cd" style="margin-bottom:.75rem;padding:8px 12px;background:var(--bl);border-radius:var(--r);border-left:2px solid var(--blue);font-size:12px">
-  These costs are <strong>separate from the per-dataset costs</strong> in the Calculator tab. They happen at the FilecoinPay and SP Registry layer — the economic infrastructure underneath FWSS. Adjust the sliders to see how settlement costs add up for your scenario.
-</div>
-<!-- SP & PAYMENT PARAMETERS ─────────────────────────────────────────────────── -->
-<div class="card">
-  <div class="ct">SP settlement & payment layer parameters</div>
-  <div class="cd">
-    These costs are separate from the per-dataset operations above. They happen at the <strong>FilecoinPay</strong> and <strong>SP Registry</strong> layer — the economic infrastructure underneath FWSS.
-  </div>
-
-  <div class="pr">
-    <span class="pl">SP rail settlements per tx</span>
-    <input type="range" id="n-rails" min="1" max="65" value="10" step="1" oninput="sync('n-rails','n-rails-out','rails');recalcPayment()">
-    <span class="pv" id="n-rails-out">10 rails</span>
-  </div>
-  <div class="pr">
-    <span class="pl">Settlement txns (SP, over period)</span>
-    <input type="range" id="n-settle" min="0" max="100" value="1" step="1" oninput="sync('n-settle','n-settle-out','txns');recalcPayment()">
-    <span class="pv" id="n-settle-out">1 txns</span>
-  </div>
-  <div class="pr">
-    <span class="pl">Client deposits (fp_deposit)</span>
-    <input type="range" id="n-deposit" min="0" max="20" value="1" step="1" oninput="sync('n-deposit','n-deposit-out','txns');recalcPayment()">
-    <span class="pv" id="n-deposit-out">1 txns</span>
-  </div>
-  <div class="pr">
-    <span class="pl">Operator approvals (fp_operator_approval)</span>
-    <input type="range" id="n-opapproval" min="0" max="10" value="1" step="1" oninput="sync('n-opapproval','n-opapproval-out','txns');recalcPayment()">
-    <span class="pv" id="n-opapproval-out">1 txns</span>
-  </div>
-
-  <div id="payment-breakdown" style="margin-top:.75rem;font-size:12px;color:var(--text2)"></div>
-</div>
-
 
 <!-- COST TABLE ─────────────────────────────────────────────────────────────── -->
 <div class="card">
@@ -486,6 +449,47 @@ footer a{color:var(--text3)}
 
 </div><!-- end main-content -->
 
+
+</div><!-- end tab-calculator -->
+
+<div id="tab-settlement" class="tab-pane">
+<div class="cd" style="margin-bottom:.75rem;padding:8px 12px;background:var(--bl);border-radius:var(--r);border-left:2px solid var(--blue);font-size:12px">
+  These costs are <strong>separate from the per-dataset costs</strong> in the Calculator tab. They happen at the <strong>FilecoinPay</strong> and <strong>SP Registry</strong> layer — the economic infrastructure underneath FWSS.
+</div>
+<!-- SP & PAYMENT PARAMETERS ─────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="ct">SP settlement & payment layer parameters</div>
+  <div class="cd">
+    These costs are separate from the per-dataset operations above. They happen at the <strong>FilecoinPay</strong> and <strong>SP Registry</strong> layer — the economic infrastructure underneath FWSS.
+  </div>
+
+  <div class="pr">
+    <span class="pl">SP rail settlements per tx</span>
+    <input type="range" id="n-rails" min="1" max="65" value="10" step="1" oninput="sync('n-rails','n-rails-out','rails');recalcPayment()">
+    <span class="pv" id="n-rails-out">10 rails</span>
+  </div>
+  <div class="pr">
+    <span class="pl">Settlement txns (SP, over period)</span>
+    <input type="range" id="n-settle" min="0" max="100" value="1" step="1" oninput="sync('n-settle','n-settle-out','txns');recalcPayment()">
+    <span class="pv" id="n-settle-out">1 txns</span>
+  </div>
+  <div class="pr">
+    <span class="pl">Client deposits (fp_deposit)</span>
+    <input type="range" id="n-deposit" min="0" max="20" value="1" step="1" oninput="sync('n-deposit','n-deposit-out','txns');recalcPayment()">
+    <span class="pv" id="n-deposit-out">1 txns</span>
+  </div>
+  <div class="pr">
+    <span class="pl">Operator approvals (fp_operator_approval)</span>
+    <input type="range" id="n-opapproval" min="0" max="10" value="1" step="1" oninput="sync('n-opapproval','n-opapproval-out','txns');recalcPayment()">
+    <span class="pv" id="n-opapproval-out">1 txns</span>
+  </div>
+
+  <div id="payment-breakdown" style="margin-top:.75rem;font-size:12px;color:var(--text2)"></div>
+</div>
+
+
+
+<div id="payment-breakdown" style="margin-top:.75rem;font-size:12px;color:var(--text2)"></div>
 </div><!-- end tab-settlement -->
 
 <div id="tab-reference" class="tab-pane">
