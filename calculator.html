@@ -138,6 +138,31 @@ footer a{color:var(--text3)}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .tab-pane{display:none}
 .tab-pane.active{display:block}
+
+/* ── REFERENCE TABLE ─────────────────────────────────────────────────────── */
+#tab-reference table td, #tab-reference table th {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  vertical-align: top;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+#tab-reference table th {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text2);
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg2);
+}
+#tab-reference table code {
+  font-size: 10px;
+  white-space: normal;
+  word-break: break-all;
+}
 </style>
 </head>
 <body>
@@ -470,9 +495,17 @@ footer a{color:var(--text3)}
   </div>
 
   <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:.75rem 0 .4rem">Dataset lifecycle — paid by client or operator</div>
-  <table>
+  <table style="table-layout:fixed;width:100%">
+    <colgroup>
+      <col style="width:14%">
+      <col style="width:11%">
+      <col style="width:9%">
+      <col style="width:9%">
+      <col style="width:12%">
+      <col style="width:45%">
+    </colgroup>
     <thead><tr>
-      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns (mainnet)</th>
+      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns</th>
       <th>Who pays</th><th>When</th><th>Notes</th>
     </tr></thead>
     <tbody>
@@ -510,9 +543,10 @@ footer a{color:var(--text3)}
   </table>
 
   <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:.75rem 0 .4rem">Proving — paid by SP (daily, automatic)</div>
-  <table>
+  <table style="table-layout:fixed;width:100%">
+    <colgroup><col style="width:14%"><col style="width:11%"><col style="width:9%"><col style="width:9%"><col style="width:12%"><col style="width:45%"></colgroup>
     <thead><tr>
-      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns (mainnet)</th>
+      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns</th>
       <th>Who pays</th><th>When</th><th>Notes</th>
     </tr></thead>
     <tbody>
@@ -535,9 +569,10 @@ footer a{color:var(--text3)}
   </table>
 
   <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:.75rem 0 .4rem">FilecoinPay payment layer — infrastructure costs</div>
-  <table>
+  <table style="table-layout:fixed;width:100%">
+    <colgroup><col style="width:14%"><col style="width:11%"><col style="width:9%"><col style="width:9%"><col style="width:12%"><col style="width:45%"></colgroup>
     <thead><tr>
-      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns (mainnet)</th>
+      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns</th>
       <th>Who pays</th><th>When</th><th>Notes</th>
     </tr></thead>
     <tbody>
@@ -580,9 +615,10 @@ footer a{color:var(--text3)}
   </table>
 
   <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:.75rem 0 .4rem">CDN layer (FilBeam) — only if with_cdn=true</div>
-  <table>
+  <table style="table-layout:fixed;width:100%">
+    <colgroup><col style="width:14%"><col style="width:11%"><col style="width:9%"><col style="width:9%"><col style="width:12%"><col style="width:45%"></colgroup>
     <thead><tr>
-      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns (mainnet)</th>
+      <th>Operation</th><th class="tr">Avg gas</th><th class="tr">Txns</th>
       <th>Who pays</th><th>When</th><th>Notes</th>
     </tr></thead>
     <tbody>
