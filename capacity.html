@@ -465,7 +465,7 @@ let AVG_BLOCKS_PER_TIPSET = 4.7;
 const TIPSETS_PER_DAY = 2880;
 function gasTargetPerTipset(){ return GAS_TARGET_PER_BLOCK * AVG_BLOCKS_PER_TIPSET; }
 
-const PP_ALPHA = 158.67e6, PP_BETA = 8.485e6, NPP_GAS = 124e6;
+const PP_ALPHA = 157027268, PP_BETA = 8.485e6, NPP_GAS = 124e6;
 function ppGas(p){ return PP_ALPHA + PP_BETA * Math.log2(Math.max(1,p)); }
 
 // Real piece distribution (630 datasets, FOC Observer April 2026)
@@ -483,21 +483,37 @@ function weightedAvgGasPerDataset(){
 
 // Historical 30-day data (FOC Observer, queried 2026-04-22)
 const HIST = [
-  {day:'Mar 23',ds:188,gas:36560796742},{day:'Mar 24',ds:301,gas:59205899682},
-  {day:'Mar 25',ds:313,gas:61641419226},{day:'Mar 26',ds:325,gas:63705051489},
-  {day:'Mar 27',ds:368,gas:70888385902},{day:'Mar 28',ds:432,gas:81200302473},
-  {day:'Mar 29',ds:437,gas:82636597242},{day:'Mar 30',ds:480,gas:89645358763},
-  {day:'Mar 31',ds:483,gas:90823943607},{day:'Apr 1', ds:457,gas:86267673548},
-  {day:'Apr 2', ds:396,gas:74908810770},{day:'Apr 3', ds:401,gas:75566560236},
-  {day:'Apr 4', ds:434,gas:81143752597},{day:'Apr 5', ds:470,gas:87927661588},
-  {day:'Apr 6', ds:473,gas:89272793999},{day:'Apr 7', ds:479,gas:90880319745},
-  {day:'Apr 8', ds:480,gas:91629224592},{day:'Apr 9', ds:480,gas:91766939188},
-  {day:'Apr 10',ds:460,gas:87992810530},{day:'Apr 11',ds:444,gas:84516356495},
-  {day:'Apr 12',ds:295,gas:57092582745},{day:'Apr 13',ds:337,gas:64551576129},
-  {day:'Apr 14',ds:353,gas:67897357172},{day:'Apr 15',ds:279,gas:54132931715},
-  {day:'Apr 16',ds:288,gas:55964600274},{day:'Apr 17',ds:284,gas:55468971469},
-  {day:'Apr 18',ds:285,gas:55818849574},{day:'Apr 19',ds:286,gas:56125445898},
-  {day:'Apr 20',ds:284,gas:55780876667},{day:'Apr 21',ds:289,gas:56870963583},
+  {day:'Mar 23',ds:102,gas:20234273400},
+  {day:'Mar 24',ds:301,gas:59205899682},
+  {day:'Mar 25',ds:313,gas:61641419226},
+  {day:'Mar 26',ds:325,gas:63705051489},
+  {day:'Mar 27',ds:368,gas:70888385902},
+  {day:'Mar 28',ds:432,gas:81200302473},
+  {day:'Mar 29',ds:437,gas:82636597242},
+  {day:'Mar 30',ds:480,gas:89645358763},
+  {day:'Mar 31',ds:483,gas:90823943607},
+  {day:'Apr 1',ds:457,gas:86267673548},
+  {day:'Apr 2',ds:395,gas:74908810770},
+  {day:'Apr 3',ds:401,gas:75566560236},
+  {day:'Apr 4',ds:434,gas:81143752597},
+  {day:'Apr 5',ds:470,gas:87927661588},
+  {day:'Apr 6',ds:473,gas:89272793999},
+  {day:'Apr 7',ds:479,gas:90880319745},
+  {day:'Apr 8',ds:480,gas:91629224592},
+  {day:'Apr 9',ds:480,gas:91766939188},
+  {day:'Apr 10',ds:460,gas:87992810530},
+  {day:'Apr 11',ds:444,gas:84516356495},
+  {day:'Apr 12',ds:295,gas:57092582745},
+  {day:'Apr 13',ds:337,gas:64551576129},
+  {day:'Apr 14',ds:353,gas:67897357172},
+  {day:'Apr 15',ds:279,gas:54132931715},
+  {day:'Apr 16',ds:287,gas:55964600274},
+  {day:'Apr 17',ds:284,gas:55468971469},
+  {day:'Apr 18',ds:285,gas:55818849574},
+  {day:'Apr 19',ds:286,gas:56125445898},
+  {day:'Apr 20',ds:284,gas:55780876667},
+  {day:'Apr 21',ds:289,gas:56870963583},
+  {day:'Apr 22',ds:186,gas:36084459614},
 ];
 
 // Base fee scenarios (attoFIL) — same as calculator
