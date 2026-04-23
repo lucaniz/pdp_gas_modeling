@@ -673,7 +673,7 @@ td:first-child { color: var(--text); font-family: var(--mono); font-weight: 700;
             <td>6 SSTORE (PDPVerifier state) + BURN_ACTOR call + FWSS callback: EIP-712 verify + 8 SSTORE + 3 FilecoinPay calls (createRail × 1, modifyRailLockup × 1, modifyRailPayment × 1). CDN adds +4 more FP calls.</td>
             <td><span class="pill pill-C">CONSTANT</span></td>
             <td>~250M</td>
-            <td>~400M (with CDN, 7 FP calls)</td>
+            <td>~840M with CDN · ~796M without (mainnet avg) — higher than expected due to EIP-712 verify + multiple FP calls</td>
           </tr>
           <tr>
             <td>addPieces ×K</td>
@@ -694,7 +694,7 @@ td:first-child { color: var(--text); font-family: var(--mono); font-weight: 700;
             <td>scheduledRemovals read (1 SLOAD) + challengeRange/nextChallenge (2 SSTORE) + FWSS callback: ~5 SLOAD/SSTORE + updatePaymentRates → 1-3 FilecoinPay modifyRailPayment calls.</td>
             <td><span class="pill pill-C">CONSTANT</span></td>
             <td>~130M</td>
-            <td>~200M (CDN: 3 rail updates)</td>
+            <td>~130M (CDN and non-CDN virtually identical — extra modifyRailPayment calls are warm FP slots)</td>
           </tr>
           <tr>
             <td>nextProvingPeriod + K pending removals</td>
@@ -722,7 +722,7 @@ td:first-child { color: var(--text); font-family: var(--mono); font-weight: 700;
             <td>Calls payments.terminateRail(pdpRailId) + if CDN: terminateRail(cacheMissRailId) + terminateRail(cdnRailId). Each terminateRail = 1 cross-contract FVM call to FilecoinPay + ~3 SSTORE inside.</td>
             <td><span class="pill pill-C">CONSTANT</span> (1 or 3 rails)</td>
             <td>~437M</td>
-            <td>~700M (CDN: 3 rail terminations)</td>
+            <td>~241M with CDN · ~136M without (mainnet avg) — much cheaper than estimated; TODO in dataSetDeleted() means rail termination is separate call</td>
           </tr>
           <tr>
             <td>claimDataSetStorageProvider (SP migration)</td>
@@ -745,13 +745,13 @@ const GAS_TARGET_TIPSET = GAS_TARGET_GGAS / 2880;
 
 // Gas models (code-derived):
 const PP_ALPHA = 158.67e6, PP_BETA = 8.485e6;  // provePossession
-const NPP_NORMAL = 130e6;                        // nextProvingPeriod (no removals)
-const NPP_CDN_EXTRA = 60e6;                      // extra for CDN (2 more FP calls)
-const CREATE_BASE = 250e6;                        // createDataSet no CDN
-const CREATE_CDN = 400e6;                         // createDataSet with CDN
-const ADD_BASE = 140e6, ADD_MARGINAL = 66e6;     // addPieces: 140M + 66M×K
-const TERM_BASE = 437e6;                          // terminateDataSet no CDN
-const TERM_CDN = 680e6;                           // terminateDataSet with CDN
+const NPP_NORMAL = 124e6;                        // nextProvingPeriod (mainnet median ~124M, CDN adds negligible ~1M)
+const NPP_CDN_EXTRA = 1e6;                       // CDN adds ~1M — negligible (warm FP calls)
+const CREATE_BASE = 796e6;                        // createDataSet no CDN (mainnet avg, 861 datasets)
+const CREATE_CDN = 840e6;                         // createDataSet with CDN (mainnet avg, 62 datasets)
+const ADD_BASE = 215e6, ADD_MARGINAL = 66e6;     // addPieces gas/tx = 140M + 66M×K (K>1 extrapolation). Model: 215M+66M×K → K=1=281M✓ K=10=875M (real=778M, conservative). Unobserved K>10 extrapolated.
+const TERM_BASE = 136e6;                          // terminateDataSet no CDN (mainnet avg, 444 txns)
+const TERM_CDN = 241e6;                           // terminateDataSet with CDN (mainnet avg, 15 txns)
 
 // NPP with removals: per removal = O(log N) × (1 SLOAD ~2100 + 1 SSTORE ~20000) + overhead
 // = log₂(N) × 22100 × 2 (SLOAD + SSTORE pair) + 3 SSTORE (delete) ≈ log₂(N) × 65000 gas
@@ -843,7 +843,7 @@ function recalc() {
 
   const provingGas   = ds * (ppGasPerDs + nppGas);
   const addGasTotal  = addTx * addGas(addK);
-  const createGasTotal = newDS * (noCDNRatio * CREATE_BASE + cdnRatio * CREATE_CDN);
+  const createGasTotal = newDS * (noCDNRatio * CREATE_BASE + cdnRatio * CREATE_CDN); // mainnet: 796M no-CDN, 840M CDN
   const termGasTotal = terms * (noCDNRatio * TERM_BASE + cdnRatio * TERM_CDN);
 
   const totalFwss = provingGas + addGasTotal + createGasTotal + termGasTotal;
