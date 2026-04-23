@@ -369,19 +369,17 @@ footer a{color:var(--text3)}
         <div style="color:var(--text3);margin-bottom:6px">
           The model is <code>gas/tx = 140M + 66M × batch_size</code>, fitted from ×1–×10 real mainnet data (R²=0.99).
           It works because each <code>addPieces</code> tx has:<br>
-          &nbsp;&nbsp;• <strong>Fixed overhead ~140M</strong>: EVM tx base cost + Sum Tree setup + listener callback<br>
+          &nbsp;&nbsp;• <strong>Fixed overhead ~140M</strong>: FVM tx base cost + Sum Tree setup + FWSS listener callback (cross-contract FVM call)<br>
           &nbsp;&nbsp;• <strong>Marginal ~66M per piece</strong>: one SSTORE to insert each leaf into the Sum Tree. Note: piecesAdded() FWSS callback does NOT call modifyRailRate — rate updates happen only in nextProvingPeriod()<br>
           Amortizing the fixed overhead across more pieces drives <code>gas/piece</code> toward the ~66M asymptote.
-          The linear fit extrapolates well because the per-piece cost is a constant EVM SSTORE — there is no
-          structural reason it would change at larger batch sizes.
+          The linear fit extrapolates well because the per-piece cost is a constant FVM SSTORE (FEVM maps EVM opcodes to FVM storage, cost is fixed per slot write) — there is no structural reason it would change at larger batch sizes.
         </div>
 
         <div style="padding:6px 10px;background:var(--al);border-left:2px solid #B45309;border-radius:var(--r);font-size:10px;color:#633806">
           ⚠ <strong>Beyond ×10: extrapolation only.</strong> As of today, <strong>zero mainnet transactions</strong> have
           been observed with more than 10 pieces per batch. The ×10 limit appears to be a client-side cap, not a contract
           constraint. If future FOC Observer data shows txns with batch &gt; 10, this calculator will be updated with
-          observed values and the model re-validated. The extrapolation is conservative — if anything, warm EVM slot
-          reuse at larger batches could make the actual cost <em>lower</em> than predicted.
+          observed values and the model re-validated. The extrapolation is conservative — if anything, shared Sum Tree ancestor nodes (FVM-agnostic tree property) at larger batches could make the actual cost <em>lower</em> than predicted.
         </div>
       </div>
     </div>
@@ -590,13 +588,13 @@ footer a{color:var(--text3)}
   <div style="font-size:11px;line-height:1.6;padding:8px 12px;background:var(--al);border-radius:var(--r);border-left:2px solid #BA7517;margin-top:6px" id="remove-note">
     <strong style="color:#633806">⚠ removePieces — cost structure, scaling, and alternatives</strong><br><br>
 
-    <strong>Why it's expensive:</strong> The PDPVerifier contract stores each dataset's pieces in an on-chain <strong>Sum Tree</strong> (Fenwick tree), used to efficiently sample random challenges during proving. Removing a piece calls <code>sumTreeRemove()</code> once per piece, which rewrites O(log N) storage slots per piece — each <code>SSTORE</code> costs ~5,000 EVM gas. This is unavoidable given the current data structure.<br><br>
+    <strong>Why it's expensive:</strong> The PDPVerifier contract stores each dataset's pieces in an on-chain <strong>Sum Tree</strong> (Fenwick tree), used to efficiently sample random challenges during proving. Removing a piece calls <code>sumTreeRemove()</code> once per piece, which rewrites O(log N) storage slots per piece — each <code>SSTORE</code> costs ~5,000 gas units (FVM/FEVM). This is unavoidable given the current data structure.<br><br>
 
     <strong>Scaling (real mainnet data, 159 txns):</strong><br>
     <span style="font-family:monospace;font-size:10px;display:block;margin:4px 0;line-height:1.8">
       ×1: ~437M &nbsp;|&nbsp; ×5: ~1,010M &nbsp;|&nbsp; ×10: ~1,700M &nbsp;|&nbsp; ×25: ~3,760M &nbsp;|&nbsp; ×50: ~6,380M &nbsp;|&nbsp; ×80: ~9,530M
     </span>
-    Gas/piece <strong>decreases as K grows</strong> — from ~437M/piece at ×1 down to ~120M/piece at ×80. <strong>Why?</strong> The Sum Tree has internal nodes that are shared by multiple pieces. When you remove piece #1 and piece #2 in the same tx, they share many ancestor nodes in the tree. EVM <code>SSTORE</code> on an already-written slot within the same tx costs only ~200 gas instead of ~5,000 gas (warm access). So the second and subsequent pieces get their ancestor updates much cheaper. This "warm cache" effect grows as K grows — more pieces share more nodes — which is why the marginal cost keeps falling. There is likely a <strong>true asymptote around ~60–80M gas/piece</strong>, corresponding to the irreducible cost of the leaf-level operations that cannot be shared. The data at ×125–126 shows ~65M/piece (2 txns — sparse, treat as indicative). Beyond that, the cost/piece probably flattens.<br><br>
+    Gas/piece <strong>decreases as K grows</strong> — from ~437M/piece at ×1 down to ~120M/piece at ×80. <strong>Why?</strong> The Sum Tree has internal nodes that are shared by multiple pieces. When you remove piece #1 and piece #2 in the same tx, they share many ancestor nodes in the tree. A <code>SSTORE</code> on an already-written slot within the same tx costs only ~200 gas instead of ~5,000 gas (warm access). So the second and subsequent pieces get their ancestor updates much cheaper. This "warm cache" effect grows as K grows — more pieces share more nodes — which is why the marginal cost keeps falling. There is likely a <strong>true asymptote around ~60–80M gas/piece</strong>, corresponding to the irreducible cost of the leaf-level operations that cannot be shared. The data at ×125–126 shows ~65M/piece (2 txns — sparse, treat as indicative). Beyond that, the cost/piece probably flattens.<br><br>
 
     <strong>Can we do better? (not today — requires a contract upgrade):</strong> The <code>scheduleRemovals()</code> function already exists in PDPVerifier and was designed to defer removals to <code>nextProvingPeriod</code>, spreading the cost across the daily proving cycle. However, it's not wired up to FWSS in a way that amortizes the Sum Tree update cost — the tree still gets updated per-piece. A future upgrade could implement lazy deletion: mark pieces as "removed" in a bitmap (cheap), rebuild the tree only when needed for challenges, or batch-update the tree during the proving period when gas cost is already being paid.<br><br>
 
@@ -743,7 +741,7 @@ footer a{color:var(--text3)}
       <tr>
         <td><code>addPieces ×N (batched)</code></td><td class="tr">315M + ~86M/piece</td><td class="tr">~730 (×2–×9)</td>
         <td>Client/SP</td><td>Per upload batch</td>
-        <td>Each additional piece in the same tx adds ~86M gas (amortized). Max observed on mainnet: ×9 pieces = ~927M gas. <strong>Path forward:</strong> the max batch size is not enforced by the contract — ×9 is the current client-side limit. Raising it would reduce per-piece cost further. Marginal cost per piece decreases with batch size (EVM warm slot reuse in the Sum Tree).</td>
+        <td>Each additional piece in the same tx adds ~86M gas (amortized). Max observed on mainnet: ×9 pieces = ~927M gas. <strong>Path forward:</strong> the max batch size is not enforced by the contract — ×9 is the current client-side limit. Raising it would reduce per-piece cost further. Marginal cost per piece decreases with batch size (shared Sum Tree ancestor nodes within same tx — FVM-agnostic tree property).</td>
       </tr>
       <tr style="background:var(--bg2)">
         <td><code>removePieces ×K</code></td><td class="tr">437M + ~170M×(K-1)</td><td class="tr">159</td>
@@ -1012,7 +1010,7 @@ footer a{color:var(--text3)}
   <div class="cd" style="margin-bottom:.75rem">
     <code>removePieces</code> calls <code>sumTreeRemove()</code> once per piece in the batch. Each call rewrites O(log N) storage slots —
     at 5,000 gas per cold SSTORE and ~200 gas per warm SSTORE. Real mainnet data shows gas/piece falls from 407M at ×1 to ~60M at ×143
-    purely due to EVM warm slot reuse (the Sum Tree's ancestor nodes are shared across pieces in the same tx).
+    due to shared Sum Tree ancestor nodes within the same tx (FVM-agnostic tree property — pieces removed together share ancestor nodes, each subsequent SSTORE on a warm slot is cheaper). The Sum Tree's ancestor nodes are shared across pieces in the same tx).
     A rewritten batch version could compute the total delta across all K pieces and apply it in a single tree traversal —
     reducing the SSTORE count from O(K × log N) to O(log N + K).
   </div>
@@ -1053,7 +1051,7 @@ footer a{color:var(--text3)}
   </table>
   </div>
   <div style="font-size:11px;color:var(--text2);margin-top:.5rem">
-    The drop at ×8–9 and ×143 confirms the warm slot effect — pieces removed together share Sum Tree ancestor nodes in EVM memory within the same tx.
+    The drop at ×8–9 and ×143 confirms the warm slot effect — pieces removed together share Sum Tree ancestor nodes within the same tx (FVM-agnostic).
     A batch-aware algorithm would achieve the ~60M/piece asymptote even at ×1 by computing all deltas before writing to storage.
   </div>
 </div>
@@ -1387,7 +1385,7 @@ async function fetchGasData(){
   `);
   const bfRows=await focQuery(`SELECT MIN(effective_gas_price) AS bf_low,MAX(effective_gas_price) AS bf_high,AVG(CASE WHEN timestamp>=EXTRACT(EPOCH FROM NOW())-86400 THEN effective_gas_price END) AS bf_24h,AVG(CASE WHEN timestamp>=EXTRACT(EPOCH FROM NOW())-86400*30 THEN effective_gas_price END) AS bf_30d,AVG(CASE WHEN timestamp>=EXTRACT(EPOCH FROM NOW())-86400*90 THEN effective_gas_price END) AS bf_90d FROM pdp_pieces_added WHERE block_number>=${BASELINE_BLOCK}`);
   const byOp={};rows.forEach(r=>{byOp[r.op]=r;});
-  GAS={createDataSet:parseFloat(byOp['createDataSet']?.avg_gas||1117.7e6),addPieces1:parseFloat(byOp['addPieces_1']?.avg_gas||314.4e6),addPieces2:parseFloat(byOp['addPieces_2']?.avg_gas||381.6e6),addPieces3:parseFloat(byOp['addPieces_3']?.avg_gas||466.3e6),addPieces4:parseFloat(byOp['addPieces_4']?.avg_gas||552.3e6),addPieces5:parseFloat(byOp['addPieces_5']?.avg_gas||625.2e6),addPieces6:parseFloat(byOp['addPieces_6']?.avg_gas||706.5e6),addPieces7:parseFloat(byOp['addPieces_7']?.avg_gas||783.6e6),addPieces9:parseFloat(byOp['addPieces_9']?.avg_gas||927.3e6),nextProvingPeriod:parseFloat(byOp['nextProvingPeriod']?.avg_gas||NPP_CONSTANT),terminateService:parseFloat(byOp['terminateService']?.avg_gas||138.3e6),removePieces:parseFloat(byOp['removePieces_any']?.avg_gas||1998e6),removePieces1:parseFloat(byOp['removePieces_1']?.avg_gas||437e6),txns:{createDataSet:parseInt(byOp['createDataSet']?.txns||0),addPieces1:parseInt(byOp['addPieces_1']?.txns||0),nextProvingPeriod:parseInt(byOp['nextProvingPeriod']?.txns||0),terminateService:parseInt(byOp['terminateService']?.txns||0)}};
+  GAS={createDataSet:parseFloat(byOp['createDataSet']?.avg_gas||796e6),addPieces1:parseFloat(byOp['addPieces_1']?.avg_gas||281.5e6),addPieces2:parseFloat(byOp['addPieces_2']?.avg_gas||295.0e6),addPieces3:parseFloat(byOp['addPieces_3']?.avg_gas||340.0e6),addPieces4:parseFloat(byOp['addPieces_4']?.avg_gas||401.0e6),addPieces5:parseFloat(byOp['addPieces_5']?.avg_gas||468.7e6),addPieces6:parseFloat(byOp['addPieces_6']?.avg_gas||533.5e6),addPieces7:parseFloat(byOp['addPieces_7']?.avg_gas||596.5e6),addPieces9:parseFloat(byOp['addPieces_9']?.avg_gas||719.3e6),nextProvingPeriod:parseFloat(byOp['nextProvingPeriod']?.avg_gas||NPP_CONSTANT),terminateService:parseFloat(byOp['terminateService']?.avg_gas||136e6),removePieces:parseFloat(byOp['removePieces_any']?.avg_gas||1889e6),removePieces1:parseFloat(byOp['removePieces_1']?.avg_gas||407e6),txns:{createDataSet:parseInt(byOp['createDataSet']?.txns||0),addPieces1:parseInt(byOp['addPieces_1']?.txns||0),nextProvingPeriod:parseInt(byOp['nextProvingPeriod']?.txns||0),terminateService:parseInt(byOp['terminateService']?.txns||0)}};
   const bf=bfRows[0];
   BF.low=parseFloat(bf.bf_low||104373);BF.high=parseFloat(bf.bf_high||1098785765);BF.h24=parseFloat(bf.bf_24h||240240);BF.d30=parseFloat(bf.bf_30d||251425);BF.d90=parseFloat(bf.bf_90d||563966);
   document.getElementById('bfv-low').textContent=fBF(BF.low);document.getElementById('bfv-24h').textContent=fBF(BF.h24);document.getElementById('bfv-30d').textContent=fBF(BF.d30);document.getElementById('bfv-90d').textContent=fBF(BF.d90);document.getElementById('bfv-high').textContent=fBF(BF.high);
@@ -1414,7 +1412,7 @@ function renderGasRefGrid(){
     {label:'createDataSet',val:GAS.createDataSet,freq:'once/dataset',badge:'LIVE',teal:false},
     {label:'terminateService',val:GAS.terminateService,freq:'once/dataset',badge:'LIVE',teal:false},
     {label:'removePieces ×1',val:GAS.removePieces1||437e6,freq:'~437M gas for 1 piece — decreases to ~60M/piece at ×100+',badge:'LIVE',warn:true},
-    {label:'removePieces ×10 (est.)',val:GAS.removePieces1?GAS.removePieces1*10*0.55:437e6*5.5,freq:'~240M gas/piece avg (sublinear — EVM warm cache at ×10)',badge:'EST',warn:true},
+    {label:'removePieces ×10 (est.)',val:GAS.removePieces1?GAS.removePieces1*10*0.55:437e6*5.5,freq:'~240M gas/piece avg (sublinear — shared Sum Tree ancestors at ×10)',badge:'EST',warn:true},
   ];
   const grid=document.getElementById('gas-ref-grid');
   grid.innerHTML=ops.map(o=>{
