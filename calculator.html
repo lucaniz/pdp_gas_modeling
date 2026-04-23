@@ -370,7 +370,7 @@ footer a{color:var(--text3)}
           The model is <code>gas/tx = 140M + 66M × batch_size</code>, fitted from ×1–×10 real mainnet data (R²=0.99).
           It works because each <code>addPieces</code> tx has:<br>
           &nbsp;&nbsp;• <strong>Fixed overhead ~140M</strong>: EVM tx base cost + Sum Tree setup + listener callback<br>
-          &nbsp;&nbsp;• <strong>Marginal ~66M per piece</strong>: one SSTORE to insert each leaf into the Sum Tree<br>
+          &nbsp;&nbsp;• <strong>Marginal ~66M per piece</strong>: one SSTORE to insert each leaf into the Sum Tree. Note: piecesAdded() FWSS callback does NOT call modifyRailRate — rate updates happen only in nextProvingPeriod()<br>
           Amortizing the fixed overhead across more pieces drives <code>gas/piece</code> toward the ~66M asymptote.
           The linear fit extrapolates well because the per-piece cost is a constant EVM SSTORE — there is no
           structural reason it would change at larger batch sizes.
@@ -748,7 +748,7 @@ footer a{color:var(--text3)}
       <tr style="background:var(--bg2)">
         <td><code>removePieces ×K</code></td><td class="tr">437M + ~170M×(K-1)</td><td class="tr">159</td>
         <td>Client/SP</td><td>When deleting data</td>
-        <td>Calls <code>sumTreeRemove()</code> per piece — each rewrites O(log N) Sum Tree nodes. Scales sublinearly due to EVM warm slot cache: gas/piece falls from ~437M at ×1 to ~120M at ×80, with likely asymptote ~60–80M/piece. <strong>Path forward:</strong> lazy deletion via bitmap marking would reduce this to O(1) per piece; tree update deferred to <code>nextProvingPeriod</code>. Requires contract upgrade. Today: use terminate+recreate if removing &gt;65% of pieces.</td>
+        <td>Calls <code>sumTreeRemove()</code> per piece — each rewrites O(log N) Sum Tree nodes. Scales sublinearly due to shared Sum Tree ancestor nodes within same tx (FVM-agnostic tree property): gas/piece falls from ~437M at ×1 to ~120M at ×80, with likely asymptote ~60–80M/piece. <strong>Path forward:</strong> lazy deletion via bitmap marking would reduce this to O(1) per piece; tree update deferred to <code>nextProvingPeriod</code>. Requires contract upgrade. Today: use terminate+recreate if removing &gt;65% of pieces.</td>
       </tr>
       <tr>
         <td><code>terminateService</code></td><td class="tr">~138M</td><td class="tr">399</td>
@@ -779,7 +779,7 @@ footer a{color:var(--text3)}
       <tr style="background:var(--bg2)">
         <td><code>nextProvingPeriod</code></td><td class="tr">~126M</td><td class="tr">~400k+</td>
         <td>SP</td><td>Daily, per dataset</td>
-        <td>Advances proving window, generates next challenge epoch. Gas is flat — independent of piece count (does not access the Sum Tree or piece data). Paired with <code>provePossession</code>, together ~285–443M gas/dataset/day depending on piece count. <strong>Important:</strong> this tx also processes any pending <code>scheduledRemovals</code>, which is why removals are deferred to this call — but the Sum Tree update cost is still paid here per removed piece.</td>
+        <td>Advances proving window, generates next challenge epoch. Gas is ~124M flat (mainnet) — independent of piece count. Includes FWSS callback: updatePaymentRates() → FilecoinPay.modifyRailPayment() (1 call base, 3 calls if CDN). Calibnet benchmark says ~54M — difference is real FilecoinPay settlement on mainnet. Paired with <code>provePossession</code>, together ~285–443M gas/dataset/day depending on piece count. <strong>Important:</strong> this tx also processes any pending <code>scheduledRemovals</code>, which is why removals are deferred to this call — but the Sum Tree update cost is still paid here per removed piece.</td>
       </tr>
       <tr>
         <td><code>pdp_proof_fee_paid</code> (FIL)</td><td class="tr">~191M gas</td><td class="tr">11,428</td>
