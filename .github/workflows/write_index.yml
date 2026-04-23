@@ -1,0 +1,27 @@
+name: Write index.html
+on:
+  workflow_dispatch:
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write index.html
+        run: |
+          python3 << 'PYEOF'
+          import base64, gzip
+          b64 = "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"
+          data = gzip.decompress(base64.b64decode(b64))
+          with open('index.html', 'wb') as f:
+              f.write(data)
+          print(f"Written {len(data)} bytes")
+          PYEOF
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f index.html
+          git commit --allow-empty -m "feat: add extreme scenarios card"
+          git push
