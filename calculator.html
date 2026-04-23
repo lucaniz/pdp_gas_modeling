@@ -1215,7 +1215,7 @@ function switchTab(name,btn){
 }
 
 function toggleDoc(id){
-  const el=document.getElementById('doc-'+id);
+  const el=document.getElementById('doc-body-'+id) || document.getElementById('doc-'+id);
   const btn=document.getElementById('doc-toggle-'+id);
   if(!el||!btn)return;
   const open=el.style.display==='block';
