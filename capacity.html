@@ -199,7 +199,7 @@ footer a{color:var(--text3)}
     <div class="note-inline"><strong>On weights:</strong> FIPs discussion #761 uses weighted subgroup regressions to handle heterogeneous gas behaviour across different precommit regimes. For <code>provePossession</code>, no such subgroup structure exists — piece count via log₂ is a uniform predictor across all observed ranges. Weighted regression was considered and tested but did not improve R² materially. Weights are therefore not used. If future protocol changes introduce structurally new sources of variance (variable challenge counts, new proof types), a multilinear approach following FIPs #761 should be revisited.</div>
 
     <h3>5. nextProvingPeriod — why a constant</h3>
-    <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 11,749 real mainnet transactions, the gas is flat at ~124M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
+    <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 11,749 real mainnet transactions, the gas is flat at ~130M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
 
     <h3>6. Why FWSS cannot saturate the network alone — and what the thresholds mean</h3>
     <p>At 480 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 23.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
