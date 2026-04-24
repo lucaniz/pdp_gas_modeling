@@ -1,0 +1,27 @@
+name: Write index.html
+on:
+  workflow_dispatch:
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write index.html
+        run: |
+          python3 << 'PYEOF'
+          import base64, gzip
+          b64 = "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"
+          data = gzip.decompress(base64.b64decode(b64))
+          with open('index.html', 'wb') as f:
+              f.write(data)
+          print(f"Written {len(data)} bytes")
+          PYEOF
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f index.html
+          git commit --allow-empty -m "fix: extreme scenarios card text"
+          git push
