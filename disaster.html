@@ -6,1021 +6,739 @@
 <title>FWSS Extreme Scenarios Calculator</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
-:root {
-  --bg: #0a0a0f;
-  --bg2: #12121a;
-  --bg3: #1a1a26;
-  --border: #252535;
-  --text: #e2e2f0;
-  --text2: #9090b0;
-  --text3: #50506a;
-  --red: #ff4455;
-  --red2: #ff2233;
-  --orange: #ff8833;
-  --yellow: #ffcc22;
-  --green: #22dd88;
-  --blue: #4488ff;
-  --purple: #aa66ff;
-  --r: 4px;
-  --mono: 'Space Mono', monospace;
-  --sans: 'Inter', sans-serif;
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--border:#252535;
+  --text:#e2e2f0;--text2:#9090b0;--text3:#50506a;
+  --red:#ff4455;--orange:#ff8833;--yellow:#ffcc22;--green:#22dd88;--blue:#4488ff;
+  --r:4px;--mono:'Space Mono',monospace;--sans:'Inter',sans-serif;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 13px;
-  line-height: 1.6;
-}
+.header{background:linear-gradient(135deg,#1a0a0f 0%,#0a0a1f 100%);border-bottom:1px solid var(--red);padding:18px 24px}
+.header h1{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.header p{font-size:11px;color:var(--text3)}
+.header a{color:var(--red);text-decoration:none}
 
-.header {
-  background: linear-gradient(135deg, #1a0a0f 0%, #0a0a1f 100%);
-  border-bottom: 1px solid var(--red);
-  padding: 24px 28px;
-  position: relative;
-  overflow: hidden;
-}
-.header::before {
-  content: '⚠';
-  position: absolute;
-  right: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 72px;
-  opacity: .06;
-}
-.header h1 {
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--red);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.header p { font-size: 11px; color: var(--text3); }
+.desc{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;font-size:11px;color:var(--text2);line-height:1.6}
+.desc strong{color:var(--text)}
+.desc code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:10px}
 
-.layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  min-height: calc(100vh - 74px);
-}
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 110px)}
 
 /* SIDEBAR */
-.sidebar {
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  padding: 16px;
-  overflow-y: auto;
-  max-height: calc(100vh - 74px);
-  position: sticky;
-  top: 74px;
-}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:16px;overflow-y:auto;max-height:calc(100vh - 110px);position:sticky;top:110px}
+.sl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);margin-top:14px}
+.sl:first-child{margin-top:0}
 
-.sec-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--border);
-}
+/* Background presets */
+.bg-presets{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px}
+.bg-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:6px 8px;cursor:pointer;text-align:left;transition:all .15s;font-family:var(--mono)}
+.bg-btn:hover{border-color:var(--text3)}
+.bg-btn.active{border-color:var(--blue);background:rgba(68,136,255,.1)}
+.bg-btn .bn{font-size:10px;font-weight:700;color:var(--text);display:block}
+.bg-btn .bv{font-size:9px;color:var(--text3)}
 
-.scenario-card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 10px 12px;
-  margin-bottom: 6px;
-  cursor: pointer;
-  transition: all .15s;
-  position: relative;
-}
-.scenario-card:hover { border-color: var(--text3); }
-.scenario-card.active { border-color: var(--red); background: rgba(255,68,85,.06); }
-.scenario-card .sc-sev {
-  font-family: var(--mono);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  padding: 1px 5px;
-  border-radius: 2px;
-  margin-bottom: 5px;
-  display: inline-block;
-}
-.sev-D1 { background: rgba(255,34,51,.2); color: #ff8899; }
-.sev-D2 { background: rgba(255,136,51,.2); color: #ffbb88; }
-.sev-D3 { background: rgba(255,204,34,.2); color: #ffe088; }
-.scenario-card .sc-name {
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.scenario-card .sc-desc {
-  font-size: 10px;
-  color: var(--text2);
-}
+/* Sliders with threshold */
+.ctrl{margin-bottom:14px}
+.ctrl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.ctrl-name{font-size:11px;color:var(--text2)}
+.ctrl-val{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)}
+.slider-wrap{position:relative;margin-bottom:3px}
+input[type=range]{width:100%;height:3px;background:var(--border);border-radius:2px;outline:none;-webkit-appearance:none;display:block}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid var(--bg2)}
+/* Threshold marker on slider */
+.tmarker{position:absolute;top:-4px;width:2px;height:11px;border-radius:1px;pointer-events:none}
+.tmarker.warn{background:var(--yellow)}
+.tmarker.crit{background:var(--red)}
+.tmarker-label{position:absolute;top:10px;font-size:8px;font-family:var(--mono);transform:translateX(-50%);white-space:nowrap}
 
-.ctrl-group { margin-bottom: 14px; }
-.ctrl-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-.ctrl-name { font-size: 11px; color: var(--text2); }
-.ctrl-val {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text);
-}
-input[type=range] {
-  width: 100%;
-  height: 2px;
-  background: var(--border);
-  border-radius: 1px;
-  outline: none;
-  -webkit-appearance: none;
-  margin-bottom: 3px;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: var(--red);
-  cursor: pointer;
-}
-.num-in {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 4px 8px;
-}
-.num-in:focus { outline: none; border-color: var(--red); }
+.num-in{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;margin-bottom:2px}
+.num-in:focus{outline:none;border-color:var(--blue)}
+.ctrl-note{font-size:9px;color:var(--text3);line-height:1.4;font-family:var(--mono)}
+.ctrl-note.warn{color:var(--yellow)}
+.ctrl-note.crit{color:var(--red)}
 
 /* MAIN */
-.main { padding: 20px; }
+.main{padding:18px}
 
-/* ALERT BANNER */
-.alert-banner {
-  border-radius: var(--r);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  font-family: var(--mono);
-  font-size: 11px;
-  border: 1px solid;
-  display: none;
-}
-.alert-banner.show { display: block; }
-.alert-banner.crit { background: rgba(255,34,51,.1); border-color: rgba(255,34,51,.4); color: #ffaaaa; }
-.alert-banner.warn { background: rgba(255,136,51,.08); border-color: rgba(255,136,51,.3); color: #ffcc99; }
-.alert-banner.ok   { background: rgba(34,221,136,.05); border-color: rgba(34,221,136,.2); color: #88ffcc; }
+.banner{border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-family:var(--mono);font-size:11px;border:1px solid;display:none;line-height:1.5}
+.banner.show{display:block}
+.banner.crit{background:rgba(255,68,85,.1);border-color:rgba(255,68,85,.4);color:#ffaaaa}
+.banner.warn{background:rgba(255,136,51,.08);border-color:rgba(255,136,51,.3);color:#ffcc99}
 
-/* GAS METER */
-.meter-wrap {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 16px;
-  margin-bottom: 14px;
-}
-.meter-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 12px;
-}
-
-.tipset-meter {
-  height: 48px;
-  background: var(--bg3);
-  border-radius: 3px;
-  overflow: hidden;
-  display: flex;
-  margin-bottom: 8px;
-  position: relative;
-}
-.seg {
-  height: 100%;
-  transition: width .5s cubic-bezier(.4,0,.2,1);
-  position: relative;
-}
-.seg:hover::after {
-  content: attr(data-tip);
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-family: var(--mono);
-  white-space: nowrap;
-  color: var(--text);
-  z-index: 10;
-}
-.target-line {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 2px;
-  background: var(--red);
-  z-index: 5;
-  box-shadow: 0 0 8px var(--red);
-}
-.target-line::after {
-  content: 'TARGET';
-  position: absolute;
-  top: -16px;
-  left: -20px;
-  font-size: 7px;
-  font-family: var(--mono);
-  color: var(--red);
-  letter-spacing: .1em;
-}
-.overflow-indicator {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--red);
-  background: rgba(255,34,51,.15);
-  display: none;
-}
-.overflow-indicator.show { display: flex; }
-
-.seg-labels {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.seg-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  color: var(--text2);
-  font-family: var(--mono);
-}
-.seg-dot { width: 8px; height: 8px; border-radius: 2px; }
+/* DUAL BARS */
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.bar-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.bar-title{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.bar-subtitle{font-size:10px;color:var(--text2);margin-bottom:10px;font-family:var(--mono)}
+.bar-track{height:32px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex;position:relative;margin-bottom:6px}
+.seg{height:100%;transition:width .35s cubic-bezier(.4,0,.2,1)}
+.bar-target{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:5;box-shadow:0 0 5px var(--red)}
+.over-label{position:absolute;top:0;right:0;bottom:0;align-items:center;padding:0 8px;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--red);background:rgba(255,68,85,.15);display:none}
+.over-label.show{display:flex}
+.bar-pct{font-family:var(--mono);font-size:20px;font-weight:700;margin-bottom:2px}
+.bar-pct.ok{color:var(--green)}.bar-pct.warn{color:var(--orange)}.bar-pct.crit{color:var(--red)}
+.bar-detail{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.bar-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bleg{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text2);font-family:var(--mono)}
+.bdot{width:7px;height:7px;border-radius:2px}
 
 /* METRICS */
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.mc {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 12px;
-}
-.mc.red { border-color: rgba(255,68,85,.5); background: rgba(255,68,85,.05); }
-.mc.orange { border-color: rgba(255,136,51,.4); background: rgba(255,136,51,.04); }
-.mc.green { border-color: rgba(34,221,136,.3); background: rgba(34,221,136,.04); }
-.ml { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); font-family: var(--mono); margin-bottom: 4px; }
-.mv { font-size: 17px; font-weight: 700; color: var(--text); font-family: var(--mono); }
-.mv.red { color: var(--red); }
-.mv.orange { color: var(--orange); }
-.mv.green { color: var(--green); }
-.ms { font-size: 9px; color: var(--text3); margin-top: 2px; font-family: var(--mono); }
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:11px}
+.mc.warn{border-color:rgba(255,136,51,.4);background:rgba(255,136,51,.04)}
+.mc.crit{border-color:rgba(255,68,85,.5);background:rgba(255,68,85,.05)}
+.mc.ok{border-color:rgba(34,221,136,.3);background:rgba(34,221,136,.04)}
+.ml{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);margin-bottom:3px}
+.mv{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.mv.ok{color:var(--green)}.mv.warn{color:var(--orange)}.mv.crit{color:var(--red)}
+.ms{font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
 
-/* ANALYSIS */
-.analysis {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 16px;
-  margin-bottom: 14px;
-}
-.analysis-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 12px;
-}
-.finding {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
-}
-.finding:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.fsev {
-  font-family: var(--mono);
-  font-size: 8px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 2px;
-  height: fit-content;
-  flex-shrink: 0;
-  margin-top: 1px;
-  letter-spacing: .08em;
-}
-.fsev-CRITICAL { background: rgba(255,34,51,.2); color: #ff8899; }
-.fsev-HIGH { background: rgba(255,136,51,.2); color: #ffbb88; }
-.fsev-MEDIUM { background: rgba(255,204,34,.2); color: #ffe088; }
-.fsev-INFO { background: rgba(68,136,255,.15); color: #88aaff; }
-.ftext { font-size: 12px; color: var(--text2); line-height: 1.5; }
-.ftext strong { color: var(--text); }
+/* FINDINGS */
+.abox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.at{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.fi{display:flex;gap:9px;margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.fi:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.fs{font-family:var(--mono);font-size:8px;font-weight:700;padding:2px 5px;border-radius:2px;height:fit-content;flex-shrink:0;margin-top:2px;letter-spacing:.06em}
+.CRITICAL{background:rgba(255,34,51,.2);color:#ff8899}
+.HIGH{background:rgba(255,136,51,.2);color:#ffbb88}
+.MEDIUM{background:rgba(255,204,34,.2);color:#ffe088}
+.INFO{background:rgba(68,136,255,.15);color:#88aaff}
+.ft{font-size:12px;color:var(--text2);line-height:1.5}.ft strong{color:var(--text)}
 
-/* REFERENCE TABLE */
-.ref-table {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-.ref-title {
-  padding: 12px 16px;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text3);
-  border-bottom: 1px solid var(--border);
-}
-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-th {
-  text-align: left;
-  padding: 7px 12px;
-  background: var(--bg3);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text3);
-  border-bottom: 1px solid var(--border);
-}
-td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--bg3); }
-td:first-child { color: var(--text); font-family: var(--mono); font-weight: 700; font-size: 10px; }
-.pill {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 2px;
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 700;
-}
-.pill-K { background: rgba(68,136,255,.15); color: #88aaff; }
-.pill-N { background: rgba(170,102,255,.15); color: #cc99ff; }
-.pill-KN { background: rgba(255,68,85,.15); color: #ff9999; }
-.pill-C { background: rgba(34,221,136,.1); color: #88ffcc; }
+/* REF TABLE */
+.rtwrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.rtt{padding:10px 14px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:7px 12px;background:var(--bg3);font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:7px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
+td:first-child{color:var(--text);font-family:var(--mono);font-weight:700;font-size:10px}
+.p{display:inline-block;padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700}
+.pN{background:rgba(68,136,255,.15);color:#88aaff}
+.pK{background:rgba(34,221,136,.1);color:#88ffcc}
+.pKN{background:rgba(255,68,85,.15);color:#ff9999}
+.pC{background:rgba(168,102,255,.15);color:#cc99ff}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>⚡ FWSS — Extreme Scenarios Calculator</h1>
-  <p>Code-derived gas analysis · Method-by-method breakdown · FVM/FEVM-aware · Unobserved extreme events &nbsp;·&nbsp; <a href="index.html" style="color:#ff4455;text-decoration:none">← back to index</a></p>
+  <h1>FWSS — Extreme Scenarios Calculator</h1>
+  <p>Code-derived thresholds · Dynamic critical zones · FVM-aware · <a href="index.html">← back to index</a></p>
 </div>
 
-
-<div style="background:#12121a;border-bottom:1px solid #252535;padding:16px 28px;font-size:12px;color:#9090b0;line-height:1.7;font-family:Inter,sans-serif">
-  <strong style="color:#e2e2f0">Why this tool?</strong> The standard gas calculator models observed operations. This tool models
-  <em>what hasn't happened yet</em> — extreme events derived from reading the contract code line-by-line, not from empirical data.
-  <strong style="color:#e2e2f0">Gas drivers from code:</strong>
-  (1) <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">sumTreeRemove()</code> in <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">nextProvingPeriod</code> is O(K × log₂N) — K pending removals × depth of Sum Tree.
-  With K=2,000 (contract max) on a dataset with N=871k pieces, this is ~40,000 SLOAD+SSTORE pairs — potentially unprocessable.
-  (2) <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">addPieces</code> has no contract-level limit on batch size K — at K=10,000 a single tx exceeds the entire tipset gas target.
-  (3) <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">dataSetDeleted()</code> callback has a TODO — rails are NOT automatically terminated, they become zombie state.
-  (4) <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">piecesAdded()</code> does NOT update payment rates — that happens only in <code style="background:#1a1a26;padding:1px 5px;border-radius:3px">nextProvingPeriod()</code>.
-  FVM note: cross-contract calls (PDPVerifier → FWSS → FilecoinPay) use CBOR-encoded FVM actor messaging, not EVM CALL — each adds ~20–30M gas overhead beyond the logic itself.
+<div class="desc">
+  <strong>How thresholds are computed:</strong>
+  Each slider shows where the danger zone begins — derived from the contract code, not arbitrary choices.
+  <code>addPieces</code> stuck threshold: <code>(tipset_budget − 215M) / 66M = 368 pieces</code>.
+  <code>removals</code> warning threshold: dynamic per dataset size N via <code>O(K × log₂N)</code>.
+  <code>daily</code> threshold: dynamic per background gas usage.
+  Sliders start at today's mainnet values and go up to the code-defined maximum.
 </div>
+
 <div class="layout">
-  <div class="sidebar">
+<div class="sidebar">
 
-    <div class="sec-label" style="margin-top:0">Predefined Scenarios</div>
-    <div id="scenario-list">
-      <div class="scenario-card active" onclick="loadScenario('baseline')" id="sc-baseline">
-        <div class="sc-sev sev-D3">BASELINE</div>
-        <div class="sc-name">Today — normal ops</div>
-        <div class="sc-desc">636 datasets, 1 piece/tx, no pending removals</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('npp_max_removals')" id="sc-npp_max_removals">
-        <div class="sc-sev sev-D1">DISASTER-1</div>
-        <div class="sc-name">NPP + 2000 pending removals</div>
-        <div class="sc-desc">Max queued removals on large dataset — never observed</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('massive_add_batch')" id="sc-massive_add_batch">
-        <div class="sc-sev sev-D1">DISASTER-2</div>
-        <div class="sc-name">addPieces ×10,000 batch</div>
-        <div class="sc-desc">Single tx exceeds tipset gas target — never observed</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('mass_dataset_creation')" id="sc-mass_dataset_creation">
-        <div class="sc-sev sev-D1">DISASTER-3</div>
-        <div class="sc-name">10,000 dataset onboarding</div>
-        <div class="sc-desc">SP creates 10k datasets in one day — never observed</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('mass_add_scale')" id="sc-mass_add_scale">
-        <div class="sc-sev sev-D2">DISASTER-4</div>
-        <div class="sc-name">10k datasets all adding pieces</div>
-        <div class="sc-desc">Scale growth — addPieces on all datasets same day</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('cdn_mass_terminate')" id="sc-cdn_mass_terminate">
-        <div class="sc-sev sev-D2">DISASTER-5</div>
-        <div class="sc-name">Mass CDN terminations</div>
-        <div class="sc-desc">1000 CDN datasets terminated — 3 rails each</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('sp_failure')" id="sc-sp_failure">
-        <div class="sc-sev sev-D2">DISASTER-6</div>
-        <div class="sc-name">SP failure + migration</div>
-        <div class="sc-desc">Provider goes dark, all datasets migrate</div>
-      </div>
-      <div class="scenario-card" onclick="loadScenario('dec2024_congestion')" id="sc-dec2024_congestion">
-        <div class="sc-sev sev-D2">DISASTER-7</div>
-        <div class="sc-name">Dec 2024 congestion + growth</div>
-        <div class="sc-desc">High network load + FWSS growing to 10k datasets</div>
-      </div>
+  <!-- BACKGROUND GAS -->
+  <div class="sl" style="margin-top:0">Background gas (non-FWSS network)</div>
+  <div class="bg-presets">
+    <button class="bg-btn active" onclick="setBG(15327,'today')" id="bg-today">
+      <span class="bn">Today</span><span class="bv">15,327 Ggas/day</span>
+    </button>
+    <button class="bg-btn" onclick="setBG(23832,'low')" id="bg-low">
+      <span class="bn">Low</span><span class="bv">23,832 Ggas/day</span>
+    </button>
+    <button class="bg-btn" onclick="setBG(47645,'high')" id="bg-high">
+      <span class="bn">Dec 2024</span><span class="bv">47,645 Ggas/day</span>
+    </button>
+    <button class="bg-btn" onclick="setBG(51381,'peak')" id="bg-peak">
+      <span class="bn">Peak</span><span class="bv">51,381 Ggas/day</span>
+    </button>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Custom (Ggas/day)</span>
+      <span class="ctrl-val" id="v-bg">15,327</span>
     </div>
+    <div class="slider-wrap">
+      <input type="range" id="r-bg" min="0" max="70560" value="15327"
+        oninput="clearBGPreset();sync('bg');recalc()">
+    </div>
+    <input type="number" class="num-in" id="n-bg" value="15327" min="0" max="70560"
+      oninput="clearBGPreset();syncR('bg');recalc()">
+    <div class="ctrl-note" id="note-bg">Headroom for FWSS: computing...</div>
+  </div>
 
-    <div class="sec-label" style="margin-top:16px">Proving parameters</div>
-
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Active datasets proving daily (drives daily proving gas)</span>
-        <span class="ctrl-val" id="v-ds">636</span>
-      </div>
-      <input type="range" id="r-ds" min="1" max="100000" value="636"
+  <!-- PROVING -->
+  <div class="sl">Proving</div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Active datasets (each proves daily)</span>
+      <span class="ctrl-val" id="v-ds">636</span>
+    </div>
+    <div class="slider-wrap" id="sw-ds">
+      <input type="range" id="r-ds" min="1" max="200000" value="636"
         oninput="sync('ds');recalc()">
-      <input type="number" class="num-in" id="n-ds" value="636" min="1" max="500000"
-        oninput="syncR('ds');recalc()">
+      <div class="tmarker crit" id="tm-ds" style="display:none"></div>
     </div>
+    <input type="number" class="num-in" id="n-ds" value="636" min="1"
+      oninput="syncR('ds');recalc()">
+    <div class="ctrl-note" id="note-ds">Daily proving gas: computing...</div>
+  </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Avg pieces per dataset → drives proving gas — drives proving gas</span>
-        <span class="ctrl-val" id="v-N">229</span>
-      </div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Avg pieces per dataset (N)</span>
+      <span class="ctrl-val" id="v-N">229</span>
+    </div>
+    <div class="slider-wrap">
       <input type="range" id="r-N" min="1" max="1000000" value="229"
         oninput="sync('N');recalc()">
-      <input type="number" class="num-in" id="n-N" value="229" min="1" max="1000000"
-        oninput="syncR('N');recalc()">
-      <div style="font-size:9px;color:#50506a;margin-top:3px;font-family:Space Mono,monospace">proving gas = 158.67M + 8.485M × log₂(N)</div>
     </div>
+    <input type="number" class="num-in" id="n-N" value="229" min="1"
+      oninput="syncR('N');recalc()">
+    <div class="ctrl-note">Drives provePossession gas via log₂(N). Also affects removal threshold.</div>
+  </div>
 
-    <div class="sec-label" style="margin-top:12px">addPieces parameters</div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Pieces per addPieces tx (does not affect proving)</span>
-        <span class="ctrl-val" id="v-addK">1</span>
-      </div>
-      <input type="range" id="r-addK" min="1" max="50000" value="1"
+  <!-- ADDPIECES -->
+  <div class="sl">addPieces</div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Pieces per tx (K)</span>
+      <span class="ctrl-val" id="v-addK">1</span>
+    </div>
+    <div class="slider-wrap" id="sw-addK">
+      <input type="range" id="r-addK" min="1" max="1000" value="1"
         oninput="sync('addK');recalc()">
-      <input type="number" class="num-in" id="n-addK" value="1" min="1" max="100000"
-        oninput="syncR('addK');recalc()">
-      <div style="font-size:9px;color:#50506a;margin-top:4px;line-height:1.4;font-family:Space Mono,monospace">
-        Only affects addPieces gas. Proving gas depends on N (total pieces), not on batch size.
-        No contract limit on K — observed max on mainnet: ×10.
-      </div>
-      <div style="font-size:9px;color:#50506a;margin-top:3px;font-family:Space Mono,monospace">gas/tx = 140M + 66M × K · max observed: ×10</div>
+      <div class="tmarker warn" id="tm-addK-warn" style="left:1%" title="K=10: unobserved on mainnet"></div>
+      <div class="tmarker crit" id="tm-addK-crit" style="left:36.8%" title="K=368: stuck forever"></div>
     </div>
+    <input type="number" class="num-in" id="n-addK" value="1" min="1" max="1000"
+      oninput="syncR('addK');recalc()">
+    <div class="ctrl-note" id="note-addK">
+      <span style="color:var(--yellow)">⚠ K&gt;10:</span> unobserved on mainnet &nbsp;|&nbsp;
+      <span style="color:var(--red)">✕ K&gt;368:</span> tx stuck forever (exceeds tipset budget)
+    </div>
+  </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">addPieces transactions per day</span>
-        <span class="ctrl-val" id="v-addTx">3920</span>
-      </div>
-      <input type="range" id="r-addTx" min="0" max="5000000" value="3920"
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">addPieces transactions per day</span>
+      <span class="ctrl-val" id="v-addTx">3920</span>
+    </div>
+    <div class="slider-wrap" id="sw-addTx">
+      <input type="range" id="r-addTx" min="0" max="500000" value="3920"
         oninput="sync('addTx');recalc()">
-      <input type="number" class="num-in" id="n-addTx" value="3920" min="0" max="10000000"
-        oninput="syncR('addTx');recalc()">
+      <div class="tmarker crit" id="tm-addTx" style="display:none"></div>
     </div>
+    <input type="number" class="num-in" id="n-addTx" value="3920" min="0"
+      oninput="syncR('addTx');recalc()">
+    <div class="ctrl-note" id="note-addTx">Daily threshold: computing...</div>
+  </div>
 
-    <div class="sec-label" style="margin-top:12px">Removal queue (processed in nextProvingPeriod)</div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Pieces queued for removal — processed inside nextProvingPeriod</span>
-        <span class="ctrl-val" id="v-remK">0</span>
-      </div>
+  <!-- REMOVALS -->
+  <div class="sl">Removals (processed in nextProvingPeriod)</div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Pieces queued for removal</span>
+      <span class="ctrl-val" id="v-remK">0</span>
+    </div>
+    <div class="slider-wrap" id="sw-remK">
       <input type="range" id="r-remK" min="0" max="2000" value="0"
         oninput="sync('remK');recalc()">
-      <input type="number" class="num-in" id="n-remK" value="0" min="0" max="2000"
-        oninput="syncR('remK');recalc()">
-      <div style="font-size:9px;color:#50506a;margin-top:4px;line-height:1.4;font-family:Space Mono,monospace">
-        Removals are NOT immediate — they queue up and are processed in bulk inside nextProvingPeriod().
-        Gas = K × O(log₂N) SLOAD+SSTORE. Max queue: 2,000 (contract constant).
-      </div>
-      <div style="font-size:9px;color:#50506a;margin-top:3px;font-family:Space Mono,monospace">processed in nextProvingPeriod() · gas = O(K × log₂N)</div>
+      <div class="tmarker warn" id="tm-remK-warn" style="display:none"></div>
+      <div class="tmarker crit" id="tm-remK-crit" style="display:none"></div>
     </div>
+    <input type="number" class="num-in" id="n-remK" value="0" min="0" max="2000"
+      oninput="syncR('remK');recalc()">
+    <div class="ctrl-note" id="note-remK">
+      Not immediate — queued and processed in nextProvingPeriod(). Gas = K × O(log₂N). Contract max: 2,000.
+    </div>
+  </div>
 
-    <div class="sec-label" style="margin-top:12px">Lifecycle parameters</div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">New datasets created per day (drives createDataSet gas)</span>
-        <span class="ctrl-val" id="v-newDS">2</span>
-      </div>
+  <!-- LIFECYCLE -->
+  <div class="sl">Lifecycle</div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">New datasets created per day</span>
+      <span class="ctrl-val" id="v-newDS">2</span>
+    </div>
+    <div class="slider-wrap" id="sw-newDS">
       <input type="range" id="r-newDS" min="0" max="50000" value="2"
         oninput="sync('newDS');recalc()">
-      <input type="number" class="num-in" id="n-newDS" value="2" min="0" max="100000"
-        oninput="syncR('newDS');recalc()">
+      <div class="tmarker crit" id="tm-newDS" style="display:none"></div>
     </div>
+    <input type="number" class="num-in" id="n-newDS" value="2" min="0"
+      oninput="syncR('newDS');recalc()">
+    <div class="ctrl-note" id="note-newDS">Daily threshold: computing...</div>
+  </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">% of datasets with CDN (3 rails instead of 1)</span>
-        <span class="ctrl-val" id="v-cdnFrac">0%</span>
-      </div>
-      <input type="range" id="r-cdnFrac" min="0" max="100" value="0"
-        oninput="sync('cdnFrac');recalc()">
-      <input type="number" class="num-in" id="n-cdnFrac" value="0" min="0" max="100"
-        oninput="syncR('cdnFrac');recalc()">
-      <div style="font-size:9px;color:#50506a;margin-top:4px;line-height:1.4;font-family:Space Mono,monospace">
-        CDN datasets have 3 FilecoinPay rails (PDP + cache miss + CDN). Each rail = 1 extra cross-contract FVM call in createDataSet, nextProvingPeriod, and termination.
-      </div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">% datasets with CDN (3 rails vs 1)</span>
+      <span class="ctrl-val" id="v-cdn">0%</span>
     </div>
+    <div class="slider-wrap">
+      <input type="range" id="r-cdn" min="0" max="100" value="0"
+        oninput="sync('cdn');recalc()">
+    </div>
+    <input type="number" class="num-in" id="n-cdn" value="0" min="0" max="100"
+      oninput="syncR('cdn');recalc()">
+    <div class="ctrl-note">CDN adds ~45M to createDataSet, negligible to NPP.</div>
+  </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Dataset terminations per day</span>
-        <span class="ctrl-val" id="v-terms">0</span>
-      </div>
+  <div class="ctrl">
+    <div class="ctrl-head">
+      <span class="ctrl-name">Datasets terminated per day</span>
+      <span class="ctrl-val" id="v-terms">0</span>
+    </div>
+    <div class="slider-wrap">
       <input type="range" id="r-terms" min="0" max="10000" value="0"
         oninput="sync('terms');recalc()">
-      <input type="number" class="num-in" id="n-terms" value="0" min="0" max="100000"
-        oninput="syncR('terms');recalc()">
+    </div>
+    <input type="number" class="num-in" id="n-terms" value="0" min="0"
+      oninput="syncR('terms');recalc()">
+  </div>
+
+</div><!-- end sidebar -->
+
+<div class="main">
+
+  <div class="banner" id="banner"></div>
+
+  <!-- DUAL BARS -->
+  <div class="bars">
+
+    <!-- BAR 1: Daily -->
+    <div class="bar-card">
+      <div class="bar-title">Daily gas budget</div>
+      <div class="bar-subtitle" id="bar1-subtitle">Target: 70,560 Ggas/day</div>
+      <div class="bar-track">
+        <div class="seg" id="d-net" style="background:#303050"></div>
+        <div class="seg" id="d-pp"  style="background:#4488ff"></div>
+        <div class="seg" id="d-add" style="background:#22dd88"></div>
+        <div class="seg" id="d-cr"  style="background:#aa66ff"></div>
+        <div class="seg" id="d-tm"  style="background:#ff4455"></div>
+        <div class="bar-target" id="d-target"></div>
+        <div class="over-label" id="d-over">OVER</div>
+      </div>
+      <div class="bar-pct" id="d-pct">—</div>
+      <div class="bar-detail" id="d-detail">of daily target used</div>
+      <div class="bar-legend">
+        <div class="bleg"><div class="bdot" style="background:#303050"></div>non-FWSS</div>
+        <div class="bleg"><div class="bdot" style="background:#4488ff"></div>proving</div>
+        <div class="bleg"><div class="bdot" style="background:#22dd88"></div>addPieces</div>
+        <div class="bleg"><div class="bdot" style="background:#aa66ff"></div>create</div>
+        <div class="bleg"><div class="bdot" style="background:#ff4455"></div>terminate</div>
+      </div>
     </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">
-        <span class="ctrl-name">Non-FWSS network load (Ggas/day)</span>
-        <span class="ctrl-val" id="v-netG">15327</span>
+    <!-- BAR 2: Single tx vs tipset -->
+    <div class="bar-card">
+      <div class="bar-title">Worst single tx vs tipset budget</div>
+      <div class="bar-subtitle">Tipset budget: ~24.5 Bgas (5B × 4.9 blocks)</div>
+      <div class="bar-track">
+        <div class="seg" id="t-worst" style="background:#ff8833"></div>
+        <div class="bar-target" id="t-target"></div>
+        <div class="over-label" id="t-over">STUCK FOREVER</div>
       </div>
-      <input type="range" id="r-netG" min="0" max="70560" value="15327"
-        oninput="sync('netG');recalc()">
-      <input type="number" class="num-in" id="n-netG" value="15327" min="0" max="70560"
-        oninput="syncR('netG');recalc()">
-      <div style="font-size:9px;color:#50506a;margin-top:4px;line-height:1.4;font-family:Space Mono,monospace">
-        Today: ~15,327 Ggas/day. Dec 2024 peak: ~51,381. Gas target: 70,560. FWSS gas adds on top of this.
+      <div class="bar-pct" id="t-pct">—</div>
+      <div class="bar-detail" id="t-detail">of tipset budget</div>
+      <div class="bar-legend">
+        <div class="bleg"><div class="bdot" style="background:#ff8833"></div>worst tx gas</div>
+        <div class="bleg"><div class="bdot" style="background:var(--red);height:2px;border-radius:0"></div>tipset limit</div>
       </div>
     </div>
 
   </div>
 
-  <div class="main">
-
-    <div class="alert-banner" id="alert-banner"></div>
-
-    <!-- METER -->
-    <div class="meter-wrap">
-      <div class="meter-title">Filecoin L1 gas — daily (target: 70,560 Ggas/day = 70.6 Tgas/day)</div>
-      <div class="tipset-meter">
-        <div class="seg" id="seg-net" style="background:#303050" data-tip="Non-FWSS network"></div>
-        <div class="seg" id="seg-pp" style="background:#4488ff" data-tip="provePossession + NPP"></div>
-        <div class="seg" id="seg-add" style="background:#22dd88" data-tip="addPieces"></div>
-        <div class="seg" id="seg-npp" style="background:#ff8833" data-tip="NPP with removals"></div>
-        <div class="seg" id="seg-create" style="background:#aa66ff" data-tip="createDataSet"></div>
-        <div class="seg" id="seg-term" style="background:#ff4455" data-tip="terminateDataSet"></div>
-        <div class="target-line" id="target-line"></div>
-        <div class="overflow-indicator" id="overflow-ind">OVER TARGET</div>
-      </div>
-      <!-- Single tx tipset impact indicator -->
-      <div id="tipset-impact" style="margin-bottom:8px;padding:6px 10px;border-radius:3px;font-size:10px;font-family:Space Mono,monospace;display:none"></div>
-      <div class="seg-labels">
-        <div class="seg-label"><div class="seg-dot" style="background:#303050"></div>Non-FWSS</div>
-        <div class="seg-label"><div class="seg-dot" style="background:#4488ff"></div>Proving (PP+NPP)</div>
-        <div class="seg-label"><div class="seg-dot" style="background:#22dd88"></div>addPieces</div>
-        <div class="seg-label"><div class="seg-dot" style="background:#ff8833"></div>NPP w/ removals</div>
-        <div class="seg-label"><div class="seg-dot" style="background:#aa66ff"></div>createDataSet</div>
-        <div class="seg-label"><div class="seg-dot" style="background:#ff4455"></div>Terminate</div>
-        <div class="seg-label"><div class="seg-dot" style="background:var(--red);height:2px;border-radius:0"></div>Gas target</div>
-      </div>
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="mc" id="mc-head">
+      <div class="ml">Daily headroom</div>
+      <div class="mv" id="mv-head">—</div>
+      <div class="ms">Ggas/day for FWSS</div>
     </div>
-
-    <!-- METRICS -->
-    <div class="metrics">
-      <div class="mc" id="mc-total">
-        <div class="ml">Total FWSS gas/day</div>
-        <div class="mv" id="mv-total">—</div>
-        <div class="ms" id="ms-total">—</div>
-      </div>
-      <div class="mc" id="mc-pct">
-        <div class="ml">% of gas target</div>
-        <div class="mv" id="mv-pct">—</div>
-        <div class="ms">of 70,560 Ggas/day</div>
-      </div>
-      <div class="mc" id="mc-pp">
-        <div class="ml">provePossession + NPP (no removals)</div>
-        <div class="mv" id="mv-pp">—</div>
-        <div class="ms">daily proving, excludes removal cost</div>
-      </div>
-      <div class="mc" id="mc-add">
-        <div class="ml">addPieces gas/day</div>
-        <div class="mv" id="mv-add">—</div>
-        <div class="ms" id="ms-add">—</div>
-      </div>
-      <div class="mc" id="mc-npp">
-        <div class="ml">NPP removal cost/day</div>
-        <div class="mv" id="mv-npp">—</div>
-        <div class="ms" id="ms-npp">—</div>
-      </div>
-      <div class="mc" id="mc-worst">
-        <div class="ml">Single worst-case tx</div>
-        <div class="mv" id="mv-worst">—</div>
-        <div class="ms">gas for 1 transaction</div>
-      </div>
-      <div class="mc" id="mc-head">
-        <div class="ml">Headroom</div>
-        <div class="mv" id="mv-head">—</div>
-        <div class="ms">Ggas/day before target</div>
-      </div>
+    <div class="mc" id="mc-fwss">
+      <div class="ml">FWSS gas/day</div>
+      <div class="mv" id="mv-fwss">—</div>
+      <div class="ms" id="ms-fwss">—</div>
     </div>
-
-    <!-- FINDINGS -->
-    <div class="analysis">
-      <div class="analysis-title">Scenario analysis — from code</div>
-      <div id="findings"></div>
+    <div class="mc" id="mc-pp">
+      <div class="ml">Proving gas/day</div>
+      <div class="mv" id="mv-pp">—</div>
+      <div class="ms" id="ms-pp">—</div>
     </div>
-
-    <!-- REFERENCE TABLE -->
-    <div class="ref-table">
-      <div class="ref-title">All operations — gas decomposition (code-derived, FVM-aware)</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>Gas components (from code)</th>
-            <th>Scales with</th>
-            <th>Observed max</th>
-            <th>Theoretical worst</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>createDataSet</td>
-            <td>6 SSTORE (PDPVerifier state) + BURN_ACTOR call + FWSS callback: EIP-712 verify + 8 SSTORE + 3 FilecoinPay calls (createRail × 1, modifyRailLockup × 1, modifyRailPayment × 1). CDN adds +4 more FP calls.</td>
-            <td><span class="pill pill-C">CONSTANT</span></td>
-            <td>~250M</td>
-            <td>~840M with CDN · ~796M without (mainnet avg) — higher than expected due to EIP-712 verify + multiple FP calls</td>
-          </tr>
-          <tr>
-            <td>addPieces ×K</td>
-            <td>Per piece: sumTreeAdd = h SLOAD + 1 SSTORE (h = trailing zeros of pieceId+1, avg ~1-3) + 2 SSTORE (CID) + 1 SSTORE (leafCount) + 1 SLOAD/SSTORE (totalLeafCount). Fixed: FVM cross-call to FWSS (~25M) + EIP-712 verify + 1 SSTORE/piece in FWSS (metadata).</td>
-            <td><span class="pill pill-K">K linear</span> <span class="pill pill-N">N log</span></td>
-            <td>~778M (K=10)</td>
-            <td>No contract limit on K. K=10,000 → ~660 Bgas (unprocessable)</td>
-          </tr>
-          <tr>
-            <td>provePossession</td>
-            <td>Per challenge (×5): keccak256 (compute) + findOnePieceId = log₂(N) SLOAD (binary search in Sum Tree) + 1 SLOAD (pieceCid) + MerkleVerify (pure compute, proof is calldata, no SLOAD). Fixed: Pyth oracle call + BURN_ACTOR call + FWSS callback = 2 SSTORE.</td>
-            <td><span class="pill pill-N">5×log₂(N)</span></td>
-            <td>~250M (N=871k)</td>
-            <td>~317M (N=1M). Well-bounded.</td>
-          </tr>
-          <tr>
-            <td>nextProvingPeriod (normal)</td>
-            <td>scheduledRemovals read (1 SLOAD) + challengeRange/nextChallenge (2 SSTORE) + FWSS callback: ~5 SLOAD/SSTORE + updatePaymentRates → 1-3 FilecoinPay modifyRailPayment calls.</td>
-            <td><span class="pill pill-C">CONSTANT</span></td>
-            <td>~130M</td>
-            <td>~130M (CDN and non-CDN virtually identical — extra modifyRailPayment calls are warm FP slots)</td>
-          </tr>
-          <tr>
-            <td>nextProvingPeriod + K pending removals</td>
-            <td>Per removal: removals.pop() (1 SSTORE) + removeOnePiece: 1 SLOAD + sumTreeRemove = O(log N) iterations each doing 1 SLOAD + 1 SSTORE + delete pieceCid (2 SSTORE) + delete leafCount (1 SSTORE).</td>
-            <td><span class="pill pill-KN">K × log₂(N)</span></td>
-            <td>~9.5B (K=~80, large N)</td>
-            <td>K=2000, N=871k → ~800B+ gas (potentially unprocessable)</td>
-          </tr>
-          <tr>
-            <td>schedulePieceDeletions ×K</td>
-            <td>Per piece: 1 SLOAD check + scheduledRemovals.push (1 SSTORE). Fixed: FWSS callback = EIP-712 verify only (no FP calls, no rate update).</td>
-            <td><span class="pill pill-K">K linear</span></td>
-            <td>~500M (K=50)</td>
-            <td>K=2000 → ~2B gas (but limited by MAX_ENQUEUED_REMOVALS)</td>
-          </tr>
-          <tr>
-            <td>deleteDataSet</td>
-            <td>4 SSTORE (PDPVerifier state zero) + FWSS callback: EIP-712 verify. NOTE: rail termination is NOT done here — it's a separate call to terminateDataSetPayment(). Rails accumulate as zombie state until explicitly terminated.</td>
-            <td><span class="pill pill-C">CONSTANT</span></td>
-            <td>~200M</td>
-            <td>~250M</td>
-          </tr>
-          <tr>
-            <td>terminateDataSetPayment</td>
-            <td>Calls payments.terminateRail(pdpRailId) + if CDN: terminateRail(cacheMissRailId) + terminateRail(cdnRailId). Each terminateRail = 1 cross-contract FVM call to FilecoinPay + ~3 SSTORE inside.</td>
-            <td><span class="pill pill-C">CONSTANT</span> (1 or 3 rails)</td>
-            <td>~437M</td>
-            <td>~241M with CDN · ~136M without (mainnet avg) — much cheaper than estimated; TODO in dataSetDeleted() means rail termination is separate call</td>
-          </tr>
-          <tr>
-            <td>claimDataSetStorageProvider (SP migration)</td>
-            <td>2 SSTORE (storageProvider, delete proposed) + FWSS callback: storageProviderChanged = 2 SSTORE (info.payee update). No FP calls. Rail payee is NOT updated here — payee in rail stays as old SP until next settle or explicit update.</td>
-            <td><span class="pill pill-C">CONSTANT</span></td>
-            <td>~200M est.</td>
-            <td>~250M</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="mc" id="mc-add">
+      <div class="ml">addPieces gas/day</div>
+      <div class="mv" id="mv-add">—</div>
+      <div class="ms" id="ms-add">—</div>
     </div>
-
+    <div class="mc" id="mc-worst">
+      <div class="ml">Worst single tx</div>
+      <div class="mv" id="mv-worst">—</div>
+      <div class="ms" id="ms-worst">—</div>
+    </div>
+    <div class="mc" id="mc-rem">
+      <div class="ml">NPP removal gas</div>
+      <div class="mv" id="mv-rem">—</div>
+      <div class="ms" id="ms-rem">—</div>
+    </div>
   </div>
+
+  <!-- FINDINGS -->
+  <div class="abox">
+    <div class="at">Analysis</div>
+    <div id="findings"></div>
+  </div>
+
+  <!-- REFERENCE TABLE -->
+  <div class="rtwrap">
+    <div class="rtt">All operations — gas model (code-derived, FVM/FEVM, mainnet values)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th><th>Mainnet gas</th><th>Scales with</th>
+          <th>Critical threshold</th><th>Key code drivers</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>provePossession</td>
+          <td>158.67M + 8.485M×log₂(N)</td>
+          <td><span class="p pN">5×log₂N SLOAD</span></td>
+          <td>Well-bounded. N=1M → ~317M. Not a disaster risk.</td>
+          <td>5 challenges × findOnePieceId (log₂N SLOAD binary search in Sum Tree). MerkleVerify is pure compute (off-chain proof). Pyth oracle + BURN_ACTOR. FWSS callback: 2 SSTORE only.</td>
+        </tr>
+        <tr>
+          <td>nextProvingPeriod (normal)</td>
+          <td>~124M</td>
+          <td><span class="p pC">constant</span></td>
+          <td>Not a risk alone. CDN adds negligible ~1M.</td>
+          <td>Epoch mgmt + FWSS: updatePaymentRates() → modifyRailPayment() ×1–3. Mainnet 2.3× Calibnet because mainnet settles real USDFC payments.</td>
+        </tr>
+        <tr>
+          <td>nextProvingPeriod + K removals</td>
+          <td>124M + K×O(log₂N) per removal</td>
+          <td><span class="p pKN">K × log₂N</span></td>
+          <td>Dynamic — see slider. For N=229: stuck at K>33,244. For N=871k: stuck at K>24,471. Max queue: 2,000 (contract constant).</td>
+          <td>sumTreeRemove per piece: log₂N iterations of SLOAD+SSTORE. Delete pieceCid (2 SSTORE) + leafCount (1 SSTORE). Never observed at K>~80 on mainnet.</td>
+        </tr>
+        <tr>
+          <td>addPieces ×K</td>
+          <td>215M + 66M×K<br>K=1:281M K=10:778M</td>
+          <td><span class="p pK">K linear</span></td>
+          <td><span style="color:var(--yellow)">K&gt;10:</span> unobserved.<br><span style="color:var(--red)">K&gt;368:</span> stuck forever.</td>
+          <td>Per piece: sumTreeAdd (h SLOAD + 1 SSTORE) + pieceCid (2 SSTORE) + leafCount (1 SSTORE). Fixed: FWSS cross-call + EIP-712 + 1 SSTORE/piece metadata. piecesAdded() does NOT call modifyRailRate.</td>
+        </tr>
+        <tr>
+          <td>createDataSet</td>
+          <td>796M no CDN · 840M CDN</td>
+          <td><span class="p pC">constant</span></td>
+          <td>Mass creation risk: N datasets/day × 796M. Threshold: daily headroom / 796M.</td>
+          <td>6 SSTORE + BURN_ACTOR + FWSS: EIP-712 + 8 SSTORE + 3–7 FilecoinPay FVM calls.</td>
+        </tr>
+        <tr>
+          <td>terminateDataSetPayment</td>
+          <td>136M no CDN · 241M CDN</td>
+          <td><span class="p pC">constant</span></td>
+          <td>SP failure risk: all datasets terminated in one day.</td>
+          <td>terminateRail() ×1 or ×3 (CDN). dataSetDeleted() has TODO — rails NOT auto-terminated, explicit separate call required.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
 </div>
 
 <script>
-// === Constants from code ===
-const GAS_TARGET_GGAS = 70560;        // 5B × 4.9 × 2880
-const GAS_TARGET_TIPSET = GAS_TARGET_GGAS / 2880;
+// ── Gas constants (from code, mainnet-fitted) ────────────────────────────────
+const GAS_TARGET = 70560;             // Ggas/day
+const TIPSET_GGAS = GAS_TARGET / 2880; // ~24.5 Ggas/tipset
+const TIPSET = TIPSET_GGAS * 1e9;     // in raw gas units
 
-// Gas models (code-derived):
-const PP_ALPHA = 158.67e6, PP_BETA = 8.485e6;  // provePossession
-const NPP_NORMAL = 124e6;                        // nextProvingPeriod (mainnet median ~124M, CDN adds negligible ~1M)
-const NPP_CDN_EXTRA = 1e6;                       // CDN adds ~1M — negligible (warm FP calls)
-const CREATE_BASE = 796e6;                        // createDataSet no CDN (mainnet avg, 861 datasets)
-const CREATE_CDN = 840e6;                         // createDataSet with CDN (mainnet avg, 62 datasets)
-const ADD_BASE = 215e6, ADD_MARGINAL = 66e6;     // addPieces gas/tx = 140M + 66M×K (K>1 extrapolation). Model: 215M+66M×K → K=1=281M✓ K=10=875M (real=778M, conservative). Unobserved K>10 extrapolated.
-const TERM_BASE = 136e6;                          // terminateDataSet no CDN (mainnet avg, 444 txns)
-const TERM_CDN = 241e6;                           // terminateDataSet with CDN (mainnet avg, 15 txns)
+const PP_A = 158.67e6, PP_B = 8.485e6;
+const NPP  = 124e6;
+const AB = 215e6, AM = 66e6;     // addPieces: 215M + 66M*K → K=1=281M
+const CR0 = 796e6, CR1 = 840e6;  // createDataSet
+const TR0 = 136e6, TR1 = 241e6;  // terminate
 
-// NPP with removals: per removal = O(log N) × (1 SLOAD ~2100 + 1 SSTORE ~20000) + overhead
-// = log₂(N) × 22100 × 2 (SLOAD + SSTORE pair) + 3 SSTORE (delete) ≈ log₂(N) × 65000 gas
-// plus fixed overhead per removal ~10M for memory/compute
-function nppRemovalGas(K, N) {
-  const logN = Math.log2(Math.max(1, N));
-  const perRemoval = logN * 65000 + 3 * 20000 + 500000; // sumTree + delete + overhead
-  return NPP_NORMAL + K * perRemoval;
+// ── Critical thresholds from code ───────────────────────────────────────────
+// addPieces: stuck when 215M + 66M*K > TIPSET
+const K_ADD_STUCK = Math.floor((TIPSET - AB) / AM); // = 368
+
+function ppGas(N) { return PP_A + PP_B * Math.log2(Math.max(1, N)); }
+function addGas(K) { return AB + AM * K; }
+function nppGas(K, N) {
+  if (K === 0) return NPP;
+  const logN = Math.max(1, Math.log2(Math.max(1, N)));
+  const perRem = logN * 22100 + 60000 + 500000;
+  return NPP + K * perRem;
+}
+// K where NPP removal gas > threshold
+function remKThreshold(N, gasLimit) {
+  const logN = Math.max(1, Math.log2(Math.max(1, N)));
+  const perRem = logN * 22100 + 60000 + 500000;
+  return Math.floor((gasLimit - NPP) / perRem);
 }
 
-function ppGas(N) { return PP_ALPHA + PP_BETA * Math.log2(Math.max(1, N)); }
-function addGas(K) { return ADD_BASE + ADD_MARGINAL * K; }
+function fG(g) {
+  if (g >= 1e18) return (g/1e18).toFixed(1) + ' Egas';
+  if (g >= 1e15) return (g/1e15).toFixed(1) + ' Pgas';
+  if (g >= 1e12) return (g/1e12).toFixed(1) + ' Tgas';
+  if (g >= 1e9)  return (g/1e9).toFixed(1) + ' Bgas';
+  return (g/1e6).toFixed(0) + 'M gas';
+}
+function fGshort(g) {
+  if (g >= 1e9)  return (g/1e9).toFixed(1)+'B';
+  return (g/1e6).toFixed(0)+'M';
+}
 
-// === Slider sync ===
+// ── Slider sync ──────────────────────────────────────────────────────────────
 function sync(id) {
-  const r = document.getElementById('r-' + id);
-  const n = document.getElementById('n-' + id);
-  const v = document.getElementById('v-' + id);
+  const r=document.getElementById('r-'+id), n=document.getElementById('n-'+id), v=document.getElementById('v-'+id);
   if (n) n.value = r.value;
-  if (v) {
-    if (id === 'cdnFrac') v.textContent = r.value + '%';
-    else v.textContent = Number(r.value).toLocaleString();
-  }
+  if (v) v.textContent = id==='cdn' ? r.value+'%' : Number(r.value).toLocaleString();
 }
 function syncR(id) {
-  const r = document.getElementById('r-' + id);
-  const n = document.getElementById('n-' + id);
-  const v = document.getElementById('v-' + id);
+  const r=document.getElementById('r-'+id), n=document.getElementById('n-'+id), v=document.getElementById('v-'+id);
   if (r) r.value = n.value;
-  if (v) {
-    if (id === 'cdnFrac') v.textContent = n.value + '%';
-    else v.textContent = Number(n.value).toLocaleString();
-  }
+  if (v) v.textContent = id==='cdn' ? n.value+'%' : Number(n.value).toLocaleString();
 }
-function setP(id, val) {
-  const r = document.getElementById('r-' + id);
-  const n = document.getElementById('n-' + id);
-  const v = document.getElementById('v-' + id);
-  if (r) r.value = val;
-  if (n) n.value = val;
-  if (v) {
-    if (id === 'cdnFrac') v.textContent = val + '%';
-    else v.textContent = Number(val).toLocaleString();
-  }
-}
+function gv(id) { return parseFloat(document.getElementById('n-'+id).value) || 0; }
+function gi(id) { return parseInt(document.getElementById('n-'+id).value) || 0; }
 
-// === Scenarios ===
-const SCENARIOS = {
-  baseline:          { ds:636, N:229, addK:1, addTx:3920, remK:0, newDS:2, cdnFrac:0, terms:0, netG:15327 },
-  npp_max_removals:  { ds:10, N:871740, addK:1, addTx:10, remK:2000, newDS:0, cdnFrac:0, terms:0, netG:15327 },
-  massive_add_batch: { ds:1, N:229, addK:10000, addTx:1, remK:0, newDS:0, cdnFrac:0, terms:0, netG:15327 },
-  mass_dataset_creation: { ds:636, N:229, addK:1, addTx:3920, remK:0, newDS:10000, cdnFrac:0, terms:0, netG:15327 },
-  mass_add_scale:    { ds:10000, N:229, addK:1, addTx:61600, remK:0, newDS:0, cdnFrac:0, terms:0, netG:15327 },
-  cdn_mass_terminate:{ ds:636, N:229, addK:1, addTx:3920, remK:0, newDS:0, cdnFrac:100, terms:1000, netG:15327 },
-  sp_failure:        { ds:636, N:229, addK:1, addTx:0, remK:0, newDS:0, cdnFrac:0, terms:636, netG:15327 },
-  dec2024_congestion:{ ds:10000, N:229, addK:1, addTx:10000, remK:0, newDS:0, cdnFrac:0, terms:0, netG:47645 },
-};
-
-function loadScenario(key) {
-  const s = SCENARIOS[key];
-  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-  document.getElementById('sc-' + key).classList.add('active');
-  Object.entries({ ds: s.ds, N: s.N, addK: s.addK, addTx: s.addTx, remK: s.remK,
-    newDS: s.newDS, cdnFrac: s.cdnFrac, terms: s.terms, netG: s.netG })
-    .forEach(([k, v]) => setP(k, v));
+// ── Background gas preset ────────────────────────────────────────────────────
+function setBG(val, key) {
+  document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bg-'+key).classList.add('active');
+  document.getElementById('r-bg').value = val;
+  document.getElementById('n-bg').value = val;
+  document.getElementById('v-bg').textContent = Number(val).toLocaleString();
   recalc();
 }
+function clearBGPreset() {
+  document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+}
 
-// === Main calculation ===
+// ── Threshold marker helper ──────────────────────────────────────────────────
+function setMarker(markerId, sliderMax, threshVal, show) {
+  const el = document.getElementById(markerId);
+  if (!el) return;
+  if (!show || threshVal <= 0 || threshVal >= sliderMax) {
+    el.style.display = 'none';
+  } else {
+    el.style.display = 'block';
+    el.style.left = (threshVal / sliderMax * 100).toFixed(1) + '%';
+  }
+}
+
+// ── MC helper ────────────────────────────────────────────────────────────────
+function mc(id, val, sub, cls) {
+  document.getElementById('mc-'+id).className = 'mc' + (cls ? ' '+cls : '');
+  document.getElementById('mv-'+id).textContent = val;
+  document.getElementById('mv-'+id).className = 'mv' + (cls ? ' '+cls : '');
+  const ms = document.getElementById('ms-'+id);
+  if (ms && sub !== null) ms.textContent = sub;
+}
+
+// ── Main recalc ──────────────────────────────────────────────────────────────
 function recalc() {
-  const ds     = parseInt(document.getElementById('n-ds').value) || 0;
-  const N      = parseInt(document.getElementById('n-N').value) || 1;
-  const addK   = parseInt(document.getElementById('n-addK').value) || 1;
-  const addTx  = parseInt(document.getElementById('n-addTx').value) || 0;
-  const remK   = parseInt(document.getElementById('n-remK').value) || 0;
-  const newDS  = parseInt(document.getElementById('n-newDS').value) || 0;
-  const cdnFrac= parseInt(document.getElementById('n-cdnFrac').value) || 0;
-  const terms  = parseInt(document.getElementById('n-terms').value) || 0;
-  const netG   = parseInt(document.getElementById('n-netG').value) || 0;
+  const bgGas = gv('bg') * 1e9;  // background gas in raw units
+  const N     = Math.max(1, gi('N') || 1);
+  const ds    = gi('ds');
+  const addK  = Math.max(1, gi('addK') || 1);
+  const addTx = gi('addTx');
+  const remK  = Math.min(2000, gi('remK'));
+  const newDS = gi('newDS');
+  const cdn   = gv('cdn') / 100;
+  const terms = gi('terms');
 
-  const cdnRatio = cdnFrac / 100;
-  const noCDNRatio = 1 - cdnRatio;
+  const DAILY = GAS_TARGET * 1e9;
+  const headroom = DAILY - bgGas;
 
-  // Daily gas calculations (gas units)
-  const ppGasPerDs = ppGas(N);
-  const nppGas = remK > 0
-    ? nppRemovalGas(remK, N)
-    : (NPP_NORMAL + cdnRatio * NPP_CDN_EXTRA);
-
-  const provingGas   = ds * (ppGasPerDs + nppGas);
-  const addGasTotal  = addTx * addGas(addK);
-  const createGasTotal = newDS * (noCDNRatio * CREATE_BASE + cdnRatio * CREATE_CDN); // mainnet: 796M no-CDN, 840M CDN
-  const termGasTotal = terms * (noCDNRatio * TERM_BASE + cdnRatio * TERM_CDN);
-
-  const totalFwss = provingGas + addGasTotal + createGasTotal + termGasTotal;
-  const totalAll  = netG * 1e9 + totalFwss;
-  const headroom  = GAS_TARGET_GGAS * 1e9 - totalAll;
-  const pct = totalFwss / (GAS_TARGET_GGAS * 1e9) * 100;
+  // Gas calculations (raw units)
+  const ppG    = ppGas(N);
+  const nppG   = nppGas(remK, N);
+  const provG  = ds * (ppG + nppG);
+  const addGd  = addTx * addGas(addK);
+  const crG    = newDS * ((1-cdn)*CR0 + cdn*CR1);
+  const tmG    = terms * ((1-cdn)*TR0 + cdn*TR1);
+  const fwssG  = provG + addGd + crG + tmG;
+  const totalG = bgGas + fwssG;
 
   // Worst single tx
-  const worstAddTx   = addGas(addK);
-  const worstNppTx   = nppRemovalGas(remK, N);
-  const worstCreate  = cdnRatio > 0 ? CREATE_CDN : CREATE_BASE;
-  const worstSingle  = Math.max(worstAddTx, worstNppTx, worstCreate, TERM_CDN);
+  const worstAdd = addGas(addK);
+  const worstNPP = nppGas(remK, N);
+  const worstCR  = cdn > 0 ? CR1 : CR0;
+  const worst    = Math.max(worstAdd, worstNPP, worstCR);
 
-  // === Bar chart (daily gas) ===
-  // Bar: DAILY gas vs daily target
-  const DAILY_TARGET_GAS = GAS_TARGET_GGAS * 1e9; // 70,560 Ggas/day in gas units
-  const netD  = netG * 1e9;
-  const ppD   = provingGas;
-  const addD  = addGasTotal;
-  const crD   = createGasTotal;
-  const tmD   = termGasTotal;
-  const totalD = netD + ppD + addD + crD + tmD;
-  const barMax = Math.max(totalD, DAILY_TARGET_GAS) * 1.08;
+  // Thresholds
+  const K_ADD_WARN = 10;                       // unobserved
+  // K_ADD_STUCK = 368 (global)
+  const K_REM_WARN = remKThreshold(N, 500e6);  // NPP > 500M
+  const K_REM_STUCK = remKThreshold(N, TIPSET);// NPP > tipset
+  const DS_MAX = Math.floor(headroom / (ppGas(N) + NPP)); // max datasets before daily target
+  const ADDTX_MAX = addTx > 0 ? Math.floor(headroom / addGas(addK)) : Infinity;
+  const NEWDS_MAX = Math.floor(headroom / CR0);
 
-  function bp(v) { return Math.min(v / barMax * 100, 100).toFixed(2) + '%'; }
-  document.getElementById('seg-net').style.width    = bp(netD);
-  document.getElementById('seg-pp').style.width     = bp(ppD);
-  document.getElementById('seg-add').style.width    = bp(addD);
-  document.getElementById('seg-npp').style.width    = bp(0);
-  document.getElementById('seg-create').style.width = bp(crD);
-  document.getElementById('seg-term').style.width   = bp(tmD);
+  // ── Update slider threshold markers ──────────────────────────────────────
+  // addK markers (fixed at 10 and 368, max=1000)
+  setMarker('tm-addK-warn', 1000, K_ADD_WARN, true);
+  setMarker('tm-addK-crit', 1000, K_ADD_STUCK, true);
 
-  // Target line at daily budget
-  const tPct = (DAILY_TARGET_GAS / barMax * 100).toFixed(2);
-  document.getElementById('target-line').style.left = tPct + '%';
-  document.getElementById('target-line').style.right = 'auto';
+  // addTx marker
+  setMarker('tm-addTx', 500000, ADDTX_MAX, ADDTX_MAX < 500000 && ADDTX_MAX > 0);
 
-  // Overflow indicator (daily)
-  const overDaily = totalD > DAILY_TARGET_GAS;
-  document.getElementById('overflow-ind').className = 'overflow-indicator' + (overDaily ? ' show' : '');
+  // removals markers
+  setMarker('tm-remK-warn', 2000, K_REM_WARN, K_REM_WARN < 2000 && K_REM_WARN > 0);
+  setMarker('tm-remK-crit', 2000, K_REM_STUCK, K_REM_STUCK < 2000 && K_REM_STUCK > 0);
 
-  // Single tx tipset impact (separate from daily bar)
-  const TIPSET_TARGET = GAS_TARGET_TIPSET * 1e9;
-  const tipsetEl = document.getElementById('tipset-impact');
-  const worstTipsetPct = (worstSingle / TIPSET_TARGET * 100).toFixed(1);
-  if (worstSingle > TIPSET_TARGET * 0.1) {
-    const overTipset = worstSingle > TIPSET_TARGET;
-    tipsetEl.style.display = 'block';
-    tipsetEl.style.background = overTipset ? 'rgba(255,68,85,.12)' : 'rgba(255,136,51,.08)';
-    tipsetEl.style.color = overTipset ? '#ff8899' : '#ffbb88';
-    tipsetEl.textContent = '⚡ Worst single tx: ' + fG(worstSingle) + ' = ' + worstTipsetPct + '% of one tipset budget (' + fG(TIPSET_TARGET) + '). ' + (overTipset ? 'EXCEEDS tipset — it would be stuck forever.' : 'Within tipset budget.');
+  // datasets marker
+  setMarker('tm-ds', 200000, DS_MAX, DS_MAX < 200000 && DS_MAX > 0);
+
+  // newDS marker
+  setMarker('tm-newDS', 50000, NEWDS_MAX, NEWDS_MAX < 50000 && NEWDS_MAX > 0);
+
+  // ── Update slider notes ──────────────────────────────────────────────────
+  const headG = headroom / 1e9;
+  document.getElementById('note-bg').textContent =
+    'Headroom for FWSS: ' + headG.toFixed(0) + ' Ggas/day (' + (headroom/DAILY*100).toFixed(1) + '% of target)';
+
+  document.getElementById('note-ds').textContent =
+    'Daily threshold: ' + DS_MAX.toLocaleString() + ' datasets (today ' + ds + ' = ' + (provG/DAILY*100).toFixed(2) + '% of target)';
+
+  const addKStat = addK > K_ADD_STUCK ? 'STUCK FOREVER' : addK > K_ADD_WARN ? 'unobserved territory' : 'normal';
+  document.getElementById('note-addTx').textContent =
+    'Max before daily target (at K=' + addK + '): ' + (ADDTX_MAX < 1e9 ? ADDTX_MAX.toLocaleString() : '∞') + ' txns/day';
+
+  document.getElementById('note-newDS').textContent =
+    'Max new datasets/day before target: ' + NEWDS_MAX.toLocaleString();
+
+  // removals note
+  const remNote = document.getElementById('note-remK');
+  if (remK > 0) {
+    const remGas = nppGas(remK, N);
+    remNote.textContent = 'NPP gas with ' + remK + ' removals (N=' + N.toLocaleString() + '): ' + fG(remGas);
+    remNote.className = 'ctrl-note' + (remGas > TIPSET ? ' crit' : remGas > 500e6 ? ' warn' : '');
   } else {
-    tipsetEl.style.display = 'none';
+    remNote.textContent = 'Queued and processed in nextProvingPeriod(). Gas = K × O(log₂N). Contract max: 2,000.';
+    remNote.className = 'ctrl-note';
   }
 
-  document.getElementById('overflow-ind').className = 'overflow-indicator' + (totalTs > DAILY_TARGET ? ' show' : '');
+  // ── BAR 1: Daily ─────────────────────────────────────────────────────────
+  const dmax = Math.max(totalG, DAILY) * 1.06;
+  function dp(v) { return Math.min(v/dmax*100, 100).toFixed(2) + '%'; }
+  document.getElementById('d-net').style.width = dp(bgGas);
+  document.getElementById('d-pp').style.width  = dp(provG);
+  document.getElementById('d-add').style.width = dp(addGd);
+  document.getElementById('d-cr').style.width  = dp(crG);
+  document.getElementById('d-tm').style.width  = dp(tmG);
+  const dtPct = (DAILY/dmax*100).toFixed(2);
+  document.getElementById('d-target').style.left = dtPct + '%';
+  document.getElementById('d-target').style.right = 'auto';
+  const overD = totalG > DAILY;
+  document.getElementById('d-over').className = 'over-label' + (overD ? ' show' : '');
+  const dpct = totalG / DAILY * 100;
+  document.getElementById('d-pct').textContent = dpct.toFixed(1) + '%';
+  document.getElementById('d-pct').className = 'bar-pct ' + (dpct>100?'crit':dpct>75?'warn':'ok');
+  document.getElementById('d-detail').textContent = fG(totalG) + ' / ' + fG(DAILY) + ' daily target';
 
-  // Show single tx tipset impact
-  const tipsetImpact = document.getElementById('tipset-impact');
-  const worstTipsetPct = (worstSingle / (GAS_TARGET_TIPSET * 1e9) * 100).toFixed(1);
-  if (worstSingle > GAS_TARGET_TIPSET * 1e9 * 0.1) {
-    const color = worstSingle > GAS_TARGET_TIPSET * 1e9 ? 'rgba(255,68,85,.15)' : 'rgba(255,136,51,.1)';
-    const textColor = worstSingle > GAS_TARGET_TIPSET * 1e9 ? '#ff8899' : '#ffbb88';
-    tipsetImpact.style.display = 'block';
-    tipsetImpact.style.background = color;
-    tipsetImpact.style.color = textColor;
-    tipsetImpact.textContent = `⚡ Worst single tx: ${fG(worstSingle)} = ${worstTipsetPct}% of one tipset budget (24.5 Bgas). ${worstSingle > GAS_TARGET_TIPSET * 1e9 ? 'EXCEEDS tipset — it would be stuck forever.' : 'Within tipset budget.'}`;
+  // ── BAR 2: Single tx vs tipset ───────────────────────────────────────────
+  const tmax = Math.max(worst, TIPSET) * 1.06;
+  document.getElementById('t-worst').style.width = (Math.min(worst/tmax*100, 100)).toFixed(2) + '%';
+  const ttPct = (TIPSET/tmax*100).toFixed(2);
+  document.getElementById('t-target').style.left = ttPct + '%';
+  document.getElementById('t-target').style.right = 'auto';
+  const overT = worst > TIPSET;
+  document.getElementById('t-over').className = 'over-label' + (overT ? ' show' : '');
+  const tpct = worst / TIPSET * 100;
+  document.getElementById('t-pct').textContent = tpct.toFixed(1) + '%';
+  document.getElementById('t-pct').className = 'bar-pct ' + (tpct>100?'crit':tpct>50?'warn':'ok');
+  document.getElementById('t-detail').textContent = fG(worst) + ' / ' + fG(TIPSET) + ' tipset budget' + (overT ? ' — it would be stuck forever.' : '');
+
+  // ── METRICS ───────────────────────────────────────────────────────────────
+  const headG2 = headroom - fwssG;
+  const hcls = headG2 < 0 ? 'crit' : headG2 < headroom*0.25 ? 'warn' : 'ok';
+  mc('head', fG(Math.max(0, headG2)), 'Ggas remaining today', hcls);
+  mc('fwss', fG(fwssG), (fwssG/DAILY*100).toFixed(2)+'% of daily target', fwssG>DAILY?'crit':fwssG>DAILY*0.5?'warn':'');
+  mc('pp',   fG(provG), ds+' datasets × '+fG(ppG+nppG)+'/ds', '');
+  mc('add',  fG(addGd), addTx+' txns × K='+addK, addK>K_ADD_STUCK?'crit':addK>10?'warn':'');
+  const wcls = overT ? 'crit' : tpct>50 ? 'warn' : '';
+  mc('worst', fG(worst), tpct.toFixed(1)+'% of tipset budget', wcls);
+  mc('rem',  nppGas(remK,N) > NPP ? fG(nppGas(remK,N)) : '—',
+    remK > 0 ? remK+' removals on N='+N.toLocaleString() : 'no pending removals', 
+    nppGas(remK,N) > TIPSET ? 'crit' : nppGas(remK,N) > 500e6 ? 'warn' : '');
+
+  // ── BANNER ────────────────────────────────────────────────────────────────
+  const b = document.getElementById('banner');
+  if (overD && overT) {
+    b.className = 'banner show crit';
+    b.textContent = 'DAILY TARGET EXCEEDED + SINGLE TX UNPROCESSABLE — Daily total: ' + fG(totalG) + '/day (target 70,560 Ggas). Worst tx: ' + fG(worst) + ' = ' + tpct.toFixed(0) + '% of tipset. It would be stuck forever.';
+  } else if (overD) {
+    b.className = 'banner show crit';
+    b.textContent = 'DAILY GAS TARGET EXCEEDED — Total: ' + fG(totalG) + '/day vs 70,560 Ggas/day. Base fee rises ±12.5%/tipset, doubling in ~3 min if sustained.';
+  } else if (overT) {
+    b.className = 'banner show crit';
+    b.textContent = 'SINGLE TX EXCEEDS TIPSET BUDGET — Worst tx: ' + fG(worst) + ' = ' + tpct.toFixed(0) + '% of one tipset (' + fG(TIPSET) + '). It would be stuck forever.';
   } else {
-    tipsetImpact.style.display = 'none';
+    b.className = 'banner';
   }
 
-  // === Metrics ===
-  const overTarget = totalAll > GAS_TARGET_GGAS * 1e9;
-  const close = totalAll > GAS_TARGET_GGAS * 1e9 * 0.75;
-
-  function fG(g) {
-    if (g > 1e18) return (g / 1e18).toFixed(2) + ' Egas';
-    if (g > 1e15) return (g / 1e15).toFixed(1) + ' Pgas';
-    if (g > 1e12) return (g / 1e12).toFixed(1) + ' Tgas';
-    if (g > 1e9)  return (g / 1e9).toFixed(1) + ' Ggas';
-    return (g / 1e6).toFixed(0) + ' Mgas';
-  }
-
-  function setMC(id, val, sub, cls) {
-    const mc = document.getElementById('mc-' + id);
-    mc.className = 'mc' + (cls ? ' ' + cls : '');
-    document.getElementById('mv-' + id).textContent = val;
-    document.getElementById('mv-' + id).className = 'mv ' + (cls === 'red' ? 'red' : cls === 'orange' ? 'orange' : cls === 'green' ? 'green' : '');
-    const ms = document.getElementById('ms-' + id);
-    if (ms && sub) ms.textContent = sub;
-  }
-
-  const totalCls = overTarget ? 'red' : close ? 'orange' : 'green';
-  setMC('total', fG(totalFwss), 'FWSS only', totalCls);
-  setMC('pct', pct.toFixed(2) + '%', null, pct > 50 ? 'red' : pct > 10 ? 'orange' : 'green');
-  setMC('pp', fG(provingGas), ds + ' datasets × (PP+NPP)', '');
-  setMC('add', fG(addGasTotal), addTx + ' txns × ' + addK + ' pieces/tx', addK > 10 ? 'orange' : '');
-  setMC('npp', remK > 0 ? fG(nppRemovalGas(remK, N)) : '—',
-    remK > 0 ? remK + ' removals on N=' + N.toLocaleString() : 'No pending removals', remK > 0 ? 'orange' : '');
-  setMC('worst', fG(worstSingle), 'single worst tx', worstSingle > GAS_TARGET_TIPSET * 1e9 * 0.5 ? 'red' : '');
-  setMC('head', fG(Math.max(0, headroom)), 'Ggas before target', overTarget ? 'red' : close ? 'orange' : 'green');
-
-  // === Alert banner ===
-  const banner = document.getElementById('alert-banner');
-  const TIPSET_BUDGET = GAS_TARGET_TIPSET * 1e9;
-  const txOverTipset = worstSingle > TIPSET_BUDGET;
-  const txPctOfTipset = (worstSingle / TIPSET_BUDGET * 100).toFixed(1);
-
-  if (overTarget && txOverTipset) {
-    // Both: daily target AND single tx too big
-    banner.className = 'alert-banner show crit';
-    banner.innerHTML = '⚠ DAILY TARGET EXCEEDED &amp; SINGLE TX UNPROCESSABLE — ' +
-      'Daily gas: ' + fG(totalAll) + '/day (target: 70,560 Ggas). ' +
-      'Worst single tx: ' + fG(worstSingle) + ' = ' + txPctOfTipset + '% of one tipset (' + fG(TIPSET_BUDGET) + '). It would be stuck forever.';
-  } else if (overTarget) {
-    banner.className = 'alert-banner show crit';
-    banner.textContent = '⚠ DAILY GAS TARGET EXCEEDED — FWSS + non-FWSS: ' + fG(totalAll) + '/day vs target 70,560 Ggas/day. Base fee rises exponentially.';
-  } else if (txOverTipset) {
-    // Single tx too big for one tipset — this is the key disaster scenario
-    banner.className = 'alert-banner show crit';
-    banner.textContent = '⚠ SINGLE TX EXCEEDS TIPSET BUDGET — Worst tx: ' + fG(worstSingle) + ' = ' + txPctOfTipset + '% of one tipset (' + fG(TIPSET_BUDGET) + '). It would be stuck forever.';
-  } else {
-    banner.className = 'alert-banner';
-  }
-
-  // === Findings ===
+  // ── FINDINGS ─────────────────────────────────────────────────────────────
   const F = [];
 
-  if (worstSingle > GAS_TARGET_TIPSET * 1e9) {
-    F.push({ sev: 'CRITICAL', text: `<strong>Single tx exceeds tipset gas target (${fG(GAS_TARGET_TIPSET * 1e9)}):</strong> The worst-case transaction in this scenario costs ${fG(worstSingle)}, which is ${(worstSingle / (GAS_TARGET_TIPSET * 1e9)).toFixed(1)}× the tipset target. It would be stuck forever. For addPieces: gas/tx = 140M + 66M × ${addK.toLocaleString()} (code: ADD_BASE + ADD_MARGINAL × K). No contract limit on K.` });
+  if (overT) {
+    F.push({s:'CRITICAL', t:'<strong>Single tx stuck forever:</strong> Worst tx = '+fG(worst)+' ('+tpct.toFixed(0)+'% of '+fG(TIPSET)+' tipset budget). ' +
+      (addK > K_ADD_STUCK ? 'addPieces ×'+addK+': gas = 215M + 66M×'+addK+' = '+fG(addGas(addK))+'. Threshold is K>'+K_ADD_STUCK+' (from code: (tipset_budget − 215M) / 66M).' : '') +
+      (nppGas(remK,N) > TIPSET ? 'NPP with '+remK+' removals on N='+N.toLocaleString()+': '+fG(nppGas(remK,N))+'. Threshold for this N: K>'+K_REM_STUCK.toLocaleString()+'.' : '')});
+  }
+
+  if (addK > K_ADD_STUCK) {
+    F.push({s:'CRITICAL', t:'<strong>addPieces K='+addK+' exceeds stuck threshold (K>'+K_ADD_STUCK+'):</strong> gas/tx = 215M + 66M × '+addK+' = '+fG(addGas(addK))+'. No contract limit on batch size. Max observed on mainnet: ×10.'});
+  } else if (addK > K_ADD_WARN) {
+    F.push({s:'HIGH', t:'<strong>addPieces K='+addK+' is beyond mainnet-observed range (K>10):</strong> Extrapolated from linear model. gas/tx = '+fG(addGas(addK))+' ('+((addGas(addK)/TIPSET)*100).toFixed(1)+'% of tipset). First stuck at K>'+K_ADD_STUCK+'.'});
   }
 
   if (remK > 0) {
-    const remGas = nppRemovalGas(remK, N);
-    const logN = Math.log2(Math.max(1, N));
-    F.push({ sev: remK > 500 ? 'CRITICAL' : remK > 100 ? 'HIGH' : 'MEDIUM',
-      text: `<strong>nextProvingPeriod with ${remK.toLocaleString()} pending removals on N=${N.toLocaleString()} pieces:</strong> From code: sumTreeRemove() is called per piece removed, each traversing O(log₂(N)) = O(${logN.toFixed(1)}) nodes in the Sum Tree with 1 SLOAD + 1 SSTORE per node. Total: ~${(remK * logN).toFixed(0)} storage operations. Estimated gas: ${fG(remGas)}. MAX_ENQUEUED_REMOVALS = 2,000 (from PDPVerifier.sol constant). Never observed at this scale on mainnet.` });
+    const rg = nppGas(remK, N);
+    const logN = Math.log2(Math.max(1,N));
+    F.push({s: rg>TIPSET?'CRITICAL':rg>500e6?'HIGH':'MEDIUM',
+      t:'<strong>nextProvingPeriod with '+remK+' removals (N='+N.toLocaleString()+'): '+fG(rg)+'</strong>. '+
+        'From code: sumTreeRemove() traverses O(log₂N)=O('+logN.toFixed(1)+') nodes per removal (1 SLOAD+1 SSTORE each). '+
+        'Warning threshold for this N: K>'+K_REM_WARN.toLocaleString()+'. Stuck threshold: K>'+K_REM_STUCK.toLocaleString()+'. Contract max queue: 2,000.'});
   }
 
-  if (addK > 10) {
-    F.push({ sev: 'CRITICAL', text: `<strong>addPieces batch size ${addK.toLocaleString()} is beyond observed territory:</strong> Max observed on mainnet: ×10. From code: addOnePiece() calls sumTreeAdd() per piece (h SLOAD + 1 SSTORE), pieceCid (2 SSTORE), leafCount (1 SSTORE), totalLeafCount update. No contract-level limit on batch size. FWSS callback adds EIP-712 verify + 1 SSTORE/piece for metadata.` });
+  if (newDS > NEWDS_MAX) {
+    F.push({s:'HIGH', t:'<strong>'+newDS.toLocaleString()+' new datasets/day exceeds daily threshold ('+NEWDS_MAX.toLocaleString()+'):</strong> createDataSet gas: '+fG(crG)+'/day. Threshold = (headroom) / 796M = '+NEWDS_MAX.toLocaleString()+'.'});
   }
 
-  if (newDS > 1000) {
-    F.push({ sev: 'HIGH', text: `<strong>${newDS.toLocaleString()} datasets created in one day:</strong> Each createDataSet triggers: 6 SSTORE (PDPVerifier state) + BURN_ACTOR call + FWSS callback with EIP-712 verify + 8+ SSTORE + 3-7 cross-contract FVM calls to FilecoinPay. Total: ${fG(createGasTotal)}/day. Note: withCDN doubles the FilecoinPay call count.` });
+  if (ds > DS_MAX) {
+    F.push({s:'HIGH', t:'<strong>'+ds.toLocaleString()+' active datasets exceeds proving threshold ('+DS_MAX.toLocaleString()+'):</strong> Daily proving gas: '+fG(provG)+'. Threshold = headroom / '+fG(ppGas(N)+NPP)+' per dataset.'});
   }
 
-  if (terms > 100) {
-    const withCDN = Math.round(terms * cdnRatio);
-    F.push({ sev: 'HIGH', text: `<strong>${terms.toLocaleString()} terminations (${withCDN} with CDN):</strong> terminateDataSetPayment() calls payments.terminateRail() per rail — 1 for base service, 3 for CDN. Each rail termination is a FVM cross-contract call to FilecoinPay with ~3 SSTORE inside. Note: dataSetDeleted() callback in FWSS has TODO comment — actual rail termination must be called separately.` });
+  if (overD) {
+    F.push({s:'CRITICAL', t:'<strong>Daily gas target exceeded:</strong> '+fG(totalG)+'/day vs target '+fG(DAILY)+'. Base fee rises ±12.5% per tipset — sustained 10% overshoot doubles it in ~3 minutes. All FWSS operations become proportionally more expensive.'});
   }
 
-  if (overTarget) {
-    F.push({ sev: 'CRITICAL', text: `<strong>Network gas target exceeded:</strong> ${fG(totalAll)}/day vs target ${fG(GAS_TARGET_GGAS * 1e9)}/day. Filecoin base fee rises ±12.5% per tipset. A sustained 10% overshoot doubles the base fee in ~3 minutes. All FWSS operations become proportionally more expensive.` });
-  }
-
-  if (netG > 40000) {
-    F.push({ sev: 'HIGH', text: `<strong>High network congestion (${(netG/GAS_TARGET_GGAS*100).toFixed(0)}% of target used by non-FWSS):</strong> Similar to December 2024 (67.5% of target). With this background load, FWSS has only ${fG(headroom)} headroom. Any FWSS growth immediately pressures the base fee.` });
+  if (gv('bg') > 40000) {
+    F.push({s:'HIGH', t:'<strong>High background congestion ('+gv('bg').toFixed(0)+' Ggas/day = '+(gv('bg')/GAS_TARGET*100).toFixed(0)+'% of target):</strong> Similar to Dec 2024 peak. Any FWSS growth immediately pressures base fee. Current FWSS headroom: '+fG(headroom - fwssG)+'.'});
   }
 
   if (F.length === 0) {
-    F.push({ sev: 'INFO', text: `<strong>Normal conditions.</strong> FWSS gas: ${fG(totalFwss)}/day (${pct.toFixed(2)}% of target). No anomalies. Worst single tx: ${fG(worstSingle)}.` });
+    F.push({s:'INFO', t:'<strong>Normal operating conditions.</strong> FWSS: '+fG(fwssG)+'/day ('+(fwssG/DAILY*100).toFixed(2)+'% of target). Worst single tx: '+fG(worst)+' ('+tpct.toFixed(1)+'% of tipset). Headroom: '+fG(Math.max(0,headroom-fwssG))+'.'});
   }
 
-  // Code architecture note
-  F.push({ sev: 'INFO', text: `<strong>FWSS architecture note (from code):</strong> piecesAdded() callback does NOT update payment rates. Rate updates happen in nextProvingPeriod() → updatePaymentRates() → FilecoinPay.modifyRailPayment(). deleteDataSet() has a TODO — rails are not automatically terminated, requiring a separate terminateDataSetPayment() call.` });
+  F.push({s:'INFO', t:'<strong>FVM/code note:</strong> piecesAdded() does NOT update payment rates — only nextProvingPeriod() does via updatePaymentRates(). deleteDataSet() has a code TODO — rails not auto-terminated, require explicit terminateDataSetPayment() call. Thresholds above are derived from contract constants and gas models, not from empirical observation beyond ×10 for addPieces.'});
 
-  document.getElementById('findings').innerHTML = F.map(f => `
-    <div class="finding">
-      <span class="fsev fsev-${f.sev}">${f.sev}</span>
-      <span class="ftext">${f.text}</span>
-    </div>`).join('');
+  document.getElementById('findings').innerHTML = F.map(f =>
+    '<div class="fi"><span class="fs '+f.s+'">'+f.s+'</span><span class="ft">'+f.t+'</span></div>'
+  ).join('');
 }
 
-// Init
 recalc();
 </script>
 </body>
