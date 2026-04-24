@@ -14,6 +14,7 @@
   --teal:#1D9E75;--tl:#E1F5EE;--td:#085041;
   --blue:#378ADD;--bl:#E6F1FB;--bd:#0C447C;
   --pl:#EDE9FE;--pd:#4C1D95;
+  --rl2:#FEE2E2;--rd2:#991B1B;
 }
 @media(prefers-color-scheme:dark){
   :root{
@@ -22,6 +23,7 @@
     --border:rgba(255,255,255,0.11);--border2:rgba(255,255,255,0.22);
     --tl:#085041;--td:#9FE1CB;--bl:#0C447C;--bd:#B5D4F4;
     --pl:#2E1065;--pd:#DDD6FE;
+    --rl2:#7F1D1D;--rd2:#FCA5A5;
   }
 }
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem}
@@ -30,7 +32,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .header h1{font-size:26px;font-weight:600;margin-bottom:8px}
 .header p{font-size:13px;color:var(--text2);line-height:1.6;max-width:520px;margin:0 auto}
 .tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:2rem}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:2rem;max-width:740px}.card.third{grid-column:1/2;max-width:100%}
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;text-decoration:none;color:var(--text);transition:border-color .15s,transform .15s;display:flex;flex-direction:column}
 .card:hover{border-color:var(--border2);transform:translateY(-2px)}
 .card-icon{width:36px;height:36px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
@@ -38,12 +40,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .card p{font-size:12px;color:var(--text2);line-height:1.6;flex:1}
 .card .arrow{font-size:12px;color:var(--text3);margin-top:14px;display:flex;align-items:center;gap:4px}
 .card:hover .arrow{color:var(--text2)}
+.card.blue{border-top:2px solid var(--blue)}
 .card.blue .card-icon{background:var(--bl)}
 .card.blue .tag{background:var(--bl);color:var(--bd)}
+.card.teal{border-top:2px solid var(--teal)}
 .card.teal .card-icon{background:var(--tl)}
 .card.teal .tag{background:var(--tl);color:var(--td)}
 .card.purple .card-icon{background:var(--pl)}
 .card.purple .tag{background:var(--pl);color:var(--pd)}
+.card.red .card-icon{background:var(--rl2)}
+.card.red .tag{background:var(--rl2);color:var(--rd2)}
+.card.red{border-top:2px solid #ef4444}
 .sources{text-align:center;font-size:11px;color:var(--text3);line-height:2}
 .sources a{color:var(--text3);text-decoration:none}
 .sources a:hover{color:var(--text2)}
@@ -63,7 +70,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
     <a href="calculator.html" class="card blue">
       <div class="tag">Cost calculator</div>
       <div class="card-icon blue">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bd)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
       </div>
       <h2>Gas &amp; cost calculator</h2>
       <p>Estimate the real gas cost of every FWSS operation — createDataSet, addPieces, provePossession, nextProvingPeriod — for any dataset configuration. Gas values queried live from FOC Observer. provePossession uses a logarithmic model fitted to 630 real datasets (R²=0.99).</p>
@@ -73,17 +80,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
     <a href="capacity.html" class="card teal">
       <div class="tag">Network forecast</div>
       <div class="card-icon teal">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#085041" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--td)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
       <h2>Network capacity &amp; forecast</h2>
       <p>How much of Filecoin's 23.5B gas/tipset target does FWSS use today? How is it growing? When does it become relevant to network congestion? Includes 30-day historical trend, dataset distribution analysis, growth scenarios, and sensitivity analysis.</p>
       <div class="arrow">Open forecast <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
     </a>
 
-    <a href="disaster.html" class="card red">
+    <a href="disaster.html" class="card red third">
       <div class="tag">Extreme scenarios</div>
       <div class="card-icon red">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rd2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <h2>Extreme scenarios calculator</h2>
       <p>Gas stress-testing for events that haven't happened yet — derived from reading PDPVerifier.sol and FilecoinWarmStorageService.sol line by line. Models sumTreeRemove O(K×log N), unbounded addPieces batches, mass dataset creation, SP failure cascades, and network congestion.</p>
