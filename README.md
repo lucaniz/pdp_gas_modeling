@@ -36,7 +36,7 @@ Models how much of Filecoin's gas budget FWSS uses, how it grows, and when it be
 The central model is a **single-predictor logarithmic regression** for `provePossession` gas:
 
 ```
-gas_provePossession(N) = 156.950M + 8.210M × log₂(N)N)N)N)N)
+gas_provePossession(N) = 157.094M + 8.203M × log₂(N)N)N)N)N)N)
 ```
 
 where `N` is the number of pieces in the dataset.
@@ -49,10 +49,10 @@ where `N` is the number of pieces in the dataset.
 
 | Metric | Value |
 |--------|-------|
-| Training datasets | 617 (updated 2026-04-24) |
+| Training datasets | 640 (updated 2026-04-25) |
 | Piece count range | 1 → 868,515 |
-| R² | 0.9512 |
-| MAE | 5.0M gas |
+| R² | 0.9542 |
+| MAE | 4.8M gas |
 | `nextProvingPeriod` model | constant ~124M gas (flat across all piece counts) |
 
 ---

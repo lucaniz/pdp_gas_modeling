@@ -204,8 +204,8 @@ footer a{color:var(--text3)}
 <!-- MODEL + DOC ──────────────────────────────────────────────────────────── -->
 <div class="model-box">
   <div class="ct">provePossession gas model — logarithmic fit (R²=0.99)</div>
-  <div class="model-formula" id="model-formula">gas = 158.67M + 8.485M &times; log&#8322;(pieces)</div>
-  <div class="model-stats">Fit from 630 real mainnet datasets &middot; MAE = 3.2M gas &middot; R² = 0.9899 &middot; <strong>nextProvingPeriod</strong> is flat at ~124M gas (independent of piece count)</div>
+  <div class="model-formula" id="model-formula">gas = 157.09M + 8.203M &times; log&#8322;(pieces)</div>
+  <div class="model-stats">Fit from 640 real mainnet datasets &middot; MAE = 4.8M gas &middot; R&sup2; = 0.9542 &middot; updated 2026-04-25<strong>nextProvingPeriod</strong> is flat at ~124M gas (independent of piece count)</div>
 </div>
 <div class="doc-toggle" id="doc-toggle-calc" onclick="toggleDoc('calc')">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -1241,7 +1241,7 @@ const BASELINE_BLOCK=5864769;
 let batching=false;
 let GAS=null;
 let BF={low:108000,high:3700000,h24:246000,d30:252000,d90:252000};
-const MODEL_ALPHA=158.67e6,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
+const MODEL_ALPHA = 157093796,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
 function ppGasModel(p){return MODEL_ALPHA+MODEL_BETA*Math.log2(Math.max(1,p));}
 let pcFilMode = 'live';
 let pcBfMode  = 'live';
