@@ -156,7 +156,7 @@ footer a{color:var(--text3)}
     <p>Filecoin produces a new <strong>tipset</strong> approximately every 30 seconds. A tipset is a set of blocks mined at the same epoch — on average, <strong>~4.9 blocks per tipset</strong> (this varies; Filfox shows 4.91 over the last 24h as of writing). Each block has a <strong>gas target of 5 billion gas units</strong>. The effective gas capacity per tipset is therefore:</p>
     <div class="formula-box">
       gas_target_per_tipset = 5,000,000,000 × avg_blocks_per_tipset<br>
-      ≈ 5B × 4.7 = <strong>23.5 billion gas units per tipset</strong>
+      ≈ 5B × 4.9 = <strong>24.5 billion gas units per tipset</strong>
     </div>
     <p>There are approximately <strong>2,880 tipsets per day</strong> (86,400 seconds ÷ 30 seconds/tipset).</p>
 
@@ -202,7 +202,7 @@ footer a{color:var(--text3)}
     <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 32,393 real mainnet transactions, the gas is flat at ~130M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
 
     <h3>6. Why FWSS cannot saturate the network alone — and what the thresholds mean</h3>
-    <p>At 480 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 23.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
+    <p>At 480 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 24.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
     <p>To reach 1% of the gas target, FWSS would need approximately 28,000 active datasets — about 60× the current level. To reach 5%, it would need ~140,000. These are the thresholds shown in Section 5 of this tool. They are not predictions — they are benchmarks that help the team understand at what scale FWSS starts contributing meaningfully to network pressure.</p>
     <p>The more relevant near-term concern is not saturation of the <em>network</em>, but saturation of specific <em>time windows</em>: if proving transactions cluster around certain epochs (as they naturally do when multiple datasets share the same proving period), they could create local spikes even at low overall load. This tool does not model intra-day clustering — it assumes uniform distribution as a baseline.</p>
 
@@ -961,16 +961,22 @@ function renderSensitivity(dsBase,pBase){
 // ── init ──────────────────────────────────────────────────────────────────────
 async function fetchAll(){
   setStatus('spin','Loading live data...');
-  // Use allSettled so a failed API call doesn't block rendering
-  await Promise.allSettled([fetchBaseFee(),fetchBlocksPerTipset()]);
-  renderCurrentState();
-  renderTrendChart();
-  renderDistBars();
-  renderThresholdTable();
-  runForecast();
-  setStatus('dot','Data loaded — FOC Observer (historical) + Glif (base fee) + Filfox (blocks/tipset)');
-  checkLastCommit();
-  fetchNetworkGasSpacescope(); // async, separate — doesn't block main load
+  try {
+    await Promise.allSettled([fetchBaseFee(),fetchBlocksPerTipset()]);
+    try { renderCurrentState(); } catch(e) { console.error('renderCurrentState',e); }
+    try { renderTrendChart(); } catch(e) { console.error('renderTrendChart',e); }
+    try { renderDistBars(); } catch(e) { console.error('renderDistBars',e); }
+    try { renderThresholdTable(); } catch(e) { console.error('renderThresholdTable',e); }
+    try { runForecast(); } catch(e) { console.error('runForecast',e); }
+    setStatus('dot','Data loaded — FOC Observer + Glif + Filfox');
+    try { checkLastCommit(); } catch(e) {}
+    fetchNetworkGasSpacescope();
+  } catch(e) {
+    console.error('fetchAll error', e);
+    setStatus('dot','Loaded with errors — check console');
+    try { renderCurrentState(); } catch(e2) {}
+    try { renderTrendChart(); } catch(e2) {}
+  }
 }
 
 // ── Network gas (hardcoded from Starboard CSV) ──────────────────────────────
