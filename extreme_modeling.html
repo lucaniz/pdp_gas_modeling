@@ -472,17 +472,31 @@ const K_ADD_STUCK = Math.floor((TIPSET - AB) / AM); // = 368
 
 function ppGas(N) { return PP_A + PP_B * Math.log2(Math.max(1, N)); }
 function addGas(K) { return AB + AM * K; }
+// removePieces gas model — observed data K≤144, K^0.614 extrapolation beyond
+const REM_OBS={1:407e6,2:601e6,3:781e6,4:950e6,5:1010e6,9:840e6,20:1754e6,50:5900e6,80:9530e6,125:8075e6,144:8600e6};
+const REM_EXP=0.614;
+function remGas(K){
+  K=Math.max(1,Math.round(K));
+  if(REM_OBS[K]!==undefined) return REM_OBS[K];
+  if(K>144) return 407e6*Math.pow(K,REM_EXP);
+  const ks=Object.keys(REM_OBS).map(Number).sort((a,b)=>a-b);
+  let lo=ks[0],hi=ks[ks.length-1];
+  for(let i=0;i<ks.length-1;i++){if(ks[i]<=K&&ks[i+1]>=K){lo=ks[i];hi=ks[i+1];break;}}
+  return REM_OBS[lo]+(K-lo)/(hi-lo)*(REM_OBS[hi]-REM_OBS[lo]);
+}
 function nppGas(K, N) {
   if (K === 0) return NPP;
-  const logN = Math.max(1, Math.log2(Math.max(1, N)));
-  const perRem = logN * 22100 + 60000 + 500000;
-  return NPP + K * perRem;
+  // Same empirical model as calculator: observed values K≤144, K^0.614 extrapolation beyond
+  // Note: O(K*logN) theory from code is not confirmed by observed data
+  return NPP + remGas(K);
 }
 // K where NPP removal gas > threshold
 function remKThreshold(N, gasLimit) {
-  const logN = Math.max(1, Math.log2(Math.max(1, N)));
-  const perRem = logN * 22100 + 60000 + 500000;
-  return Math.floor((gasLimit - NPP) / perRem);
+  // Find K where nppGas(K,N) > gasLimit using empirical model
+  for (let k = 1; k <= 2000; k++) {
+    if (NPP + remGas(k) >= gasLimit) return k;
+  }
+  return 2000;
 }
 
 function fG(g) {
