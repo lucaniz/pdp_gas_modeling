@@ -153,7 +153,7 @@ footer a{color:var(--text3)}
   <div class="doc-body" id="doc-body-main">
 
     <h3>1. Filecoin gas: tipsets, blocks, and the gas target</h3>
-    <p>Filecoin produces a new <strong>tipset</strong> approximately every 30 seconds. A tipset is a set of blocks mined at the same epoch — on average, <strong>~4.7 blocks per tipset</strong> (this varies; Filfox shows 4.91 over the last 24h as of writing). Each block has a <strong>gas target of 5 billion gas units</strong>. The effective gas capacity per tipset is therefore:</p>
+    <p>Filecoin produces a new <strong>tipset</strong> approximately every 30 seconds. A tipset is a set of blocks mined at the same epoch — on average, <strong>~4.9 blocks per tipset</strong> (this varies; Filfox shows 4.91 over the last 24h as of writing). Each block has a <strong>gas target of 5 billion gas units</strong>. The effective gas capacity per tipset is therefore:</p>
     <div class="formula-box">
       gas_target_per_tipset = 5,000,000,000 × avg_blocks_per_tipset<br>
       ≈ 5B × 4.7 = <strong>23.5 billion gas units per tipset</strong>
@@ -175,7 +175,7 @@ footer a{color:var(--text3)}
     <div class="formula-box">
       FWSS_gas_per_tipset = (N_datasets × (gas_PP(pieces) + gas_NPP)) / 2880<br><br>
       where:<br>
-      gas_PP(pieces) = 158.67M + 8.485M × log₂(pieces)  &nbsp;[logarithmic model, R²=0.99]<br>
+      gas_PP(pieces) = 158.67M + 8.485M × log₂(pieces)  &nbsp;[logarithmic model, R²=0.9551]<br>
       gas_NPP        = ~124M                              &nbsp;[empirical constant]<br>
       N_datasets     = number of active datasets proving today
     </div>
@@ -189,7 +189,7 @@ footer a{color:var(--text3)}
       α = 158,670,000 gas  (base overhead, independent of piece count)<br>
       β =   8,485,000 gas  (cost per doubling of piece count)
     </div>
-    <p>This model was fitted using ordinary least squares on 630 real mainnet datasets spanning 1 to 868,515 pieces. The fit achieves R²=0.9899 and mean absolute error of 3.2M gas — equivalent to the multilinear model's accuracy on this specific operation, without requiring additional predictors.</p>
+    <p>This model was fitted using ordinary least squares on 670 real mainnet datasets spanning 1 to 868,515 pieces. The fit achieves R²=0.9551 and mean absolute error of 4.8M gas — equivalent to the multilinear model's accuracy on this specific operation, without requiring additional predictors.</p>
     <div class="stat-row">
       <div class="stat-box"><div class="sv">630</div><div class="sl">datasets fitted</div></div>
       <div class="stat-box"><div class="sv">0.9899</div><div class="sl">R²</div></div>
@@ -199,7 +199,7 @@ footer a{color:var(--text3)}
     <div class="note-inline"><strong>On weights:</strong> FIPs discussion #761 uses weighted subgroup regressions to handle heterogeneous gas behaviour across different precommit regimes. For <code>provePossession</code>, no such subgroup structure exists — piece count via log₂ is a uniform predictor across all observed ranges. Weighted regression was considered and tested but did not improve R² materially. Weights are therefore not used. If future protocol changes introduce structurally new sources of variance (variable challenge counts, new proof types), a multilinear approach following FIPs #761 should be revisited.</div>
 
     <h3>5. nextProvingPeriod — why a constant</h3>
-    <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 11,749 real mainnet transactions, the gas is flat at ~130M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
+    <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 32,393 real mainnet transactions, the gas is flat at ~130M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
 
     <h3>6. Why FWSS cannot saturate the network alone — and what the thresholds mean</h3>
     <p>At 480 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 23.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
@@ -214,7 +214,7 @@ footer a{color:var(--text3)}
         <tr><td>Base fee (current)</td><td>Glif Lotus node (<code>Filecoin.ChainHead</code>)</td><td>Live on page load</td></tr>
         <tr><td>Avg blocks/tipset</td><td>Filfox API (<code>/api/v1/stats/base-fee</code>)</td><td>Live on page load</td></tr>
         <tr><td>Model coefficients (α, β)</td><td>OLS on FOC Observer data</td><td>Hardcoded — refit as data grows</td></tr>
-        <tr><td>Dataset distribution (630 datasets)</td><td>FOC Observer — snapshot April 2026</td><td>Hardcoded — refit monthly</td></tr>
+        <tr><td>Dataset distribution (670 datasets)</td><td>FOC Observer — snapshot April 2026</td><td>Hardcoded — refit monthly</td></tr>
       </tbody>
     </table>
   </div>
@@ -620,7 +620,7 @@ footer a{color:var(--text3)}
 
 <footer>
   FWSS Network Capacity Tool &nbsp;&middot;&nbsp;
-  Model: FOC Observer MCP (R²=0.99, 630 datasets, April 2026) &nbsp;&middot;&nbsp;
+  Model: FOC Observer MCP (R²=0.9551, 670 datasets, April 2026) &nbsp;&middot;&nbsp;
   Network gas: <a href="https://api.node.glif.io">Glif</a> + <a href="https://filfox.info">Filfox</a> &nbsp;&middot;&nbsp;
   Built by Luca &nbsp;&middot;&nbsp; <a href="index.html">← index</a>
 </footer>
@@ -633,10 +633,10 @@ let AVG_BLOCKS_PER_TIPSET = 4.7;
 const TIPSETS_PER_DAY = 2880;
 function gasTargetPerTipset(){ return GAS_TARGET_PER_BLOCK * AVG_BLOCKS_PER_TIPSET; }
 
-const PP_ALPHA = 157334726, PP_BETA = 8.485e6, NPP_GAS = 124e6;
+const PP_ALPHA = 158.67e6, PP_BETA = 8.485e6, NPP_GAS = 124e6;
 function ppGas(p){ return PP_ALPHA + PP_BETA * Math.log2(Math.max(1,p)); }
 
-// Real piece distribution (630 datasets, FOC Observer April 2026)
+// Real piece distribution (670 datasets, FOC Observer April 2026)
 const DIST_BUCKETS = [
   {label:'1',      count:146, repPieces:1},
   {label:'2–10',   count:162, repPieces:5},
@@ -651,37 +651,21 @@ function weightedAvgGasPerDataset(){
 
 // Historical 30-day data (FOC Observer, queried 2026-04-22)
 const HIST = [
-  {day:'Mar 28',ds:259,gas:47058146408},
-  {day:'Mar 29',ds:437,gas:82636597242},
-  {day:'Mar 30',ds:480,gas:89645358763},
-  {day:'Mar 31',ds:483,gas:90823943607},
-  {day:'Apr 1',ds:457,gas:86267673548},
-  {day:'Apr 2',ds:395,gas:74908810770},
-  {day:'Apr 3',ds:401,gas:75566560236},
-  {day:'Apr 4',ds:434,gas:81143752597},
-  {day:'Apr 5',ds:470,gas:87927661588},
-  {day:'Apr 6',ds:473,gas:89272793999},
-  {day:'Apr 7',ds:479,gas:90880319745},
-  {day:'Apr 8',ds:480,gas:91629224592},
-  {day:'Apr 9',ds:480,gas:91766939188},
-  {day:'Apr 10',ds:460,gas:87992810530},
-  {day:'Apr 11',ds:444,gas:84516356495},
-  {day:'Apr 12',ds:295,gas:57092582745},
-  {day:'Apr 13',ds:337,gas:64551576129},
-  {day:'Apr 14',ds:353,gas:67897357172},
-  {day:'Apr 15',ds:279,gas:54132931715},
-  {day:'Apr 16',ds:287,gas:55964600274},
-  {day:'Apr 17',ds:284,gas:55468971469},
-  {day:'Apr 18',ds:285,gas:55818849574},
-  {day:'Apr 19',ds:286,gas:56125445898},
-  {day:'Apr 20',ds:284,gas:55780876667},
-  {day:'Apr 21',ds:289,gas:56870963583},
-  {day:'Apr 22',ds:304,gas:59539286885},
-  {day:'Apr 23',ds:330,gas:63309548947},
-  {day:'Apr 24',ds:389,gas:73270468592},
-  {day:'Apr 25',ds:390,gas:73672971797},
-  {day:'Apr 26',ds:390,gas:74047810016},
-  {day:'Apr 27',ds:130,gas:24821733057},
+  {day:'Mar 23',ds:188,gas:36560796742},{day:'Mar 24',ds:301,gas:59205899682},
+  {day:'Mar 25',ds:313,gas:61641419226},{day:'Mar 26',ds:325,gas:63705051489},
+  {day:'Mar 27',ds:368,gas:70888385902},{day:'Mar 28',ds:432,gas:81200302473},
+  {day:'Mar 29',ds:437,gas:82636597242},{day:'Mar 30',ds:480,gas:89645358763},
+  {day:'Mar 31',ds:483,gas:90823943607},{day:'Apr 1', ds:457,gas:86267673548},
+  {day:'Apr 2', ds:396,gas:74908810770},{day:'Apr 3', ds:401,gas:75566560236},
+  {day:'Apr 4', ds:434,gas:81143752597},{day:'Apr 5', ds:470,gas:87927661588},
+  {day:'Apr 6', ds:473,gas:89272793999},{day:'Apr 7', ds:479,gas:90880319745},
+  {day:'Apr 8', ds:480,gas:91629224592},{day:'Apr 9', ds:480,gas:91766939188},
+  {day:'Apr 10',ds:460,gas:87992810530},{day:'Apr 11',ds:444,gas:84516356495},
+  {day:'Apr 12',ds:295,gas:57092582745},{day:'Apr 13',ds:337,gas:64551576129},
+  {day:'Apr 14',ds:353,gas:67897357172},{day:'Apr 15',ds:279,gas:54132931715},
+  {day:'Apr 16',ds:288,gas:55964600274},{day:'Apr 17',ds:284,gas:55468971469},
+  {day:'Apr 18',ds:285,gas:55818849574},{day:'Apr 19',ds:286,gas:56125445898},
+  {day:'Apr 20',ds:284,gas:55780876667},{day:'Apr 21',ds:289,gas:56870963583},
 ];
 
 // Base fee scenarios (attoFIL) — same as calculator
