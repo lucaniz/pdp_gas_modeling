@@ -1439,7 +1439,7 @@ function renderGasRefGrid(){
     return`<div class="gas-ref-item" style="${border};${warnStyle}"><div class="gas-ref-label" style="${labelColor}">${o.label}<span style="background:${bc};color:${tc};font-size:9px;padding:1px 4px;border-radius:2px;font-weight:600;margin-left:3px">${o.badge}</span></div><div class="gas-ref-value" style="color:${valColor}">${fGas(o.val)}</div><div class="gas-ref-sub">${o.freq}</div></div>`;
   }).join('');
   // Update methodology stat-boxes
-  if(document.getElementById('meth-n-create')) {
+  if(document.getElementById('meth-n-create') && typeof byOp !== 'undefined') {
     const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M+' : n >= 1000 ? Math.round(n/1000)+'k+' : n.toLocaleString();
     document.getElementById('meth-n-create').textContent = fmt(byOp['createDataSet']?.count || 0);
     document.getElementById('meth-n-add').textContent = fmt((byOp['addPieces_1']?.count||0)+(byOp['addPieces_2']?.count||0)+(byOp['addPieces_3']?.count||0)+(byOp['addPieces_4']?.count||0)+(byOp['addPieces_5']?.count||0)+(byOp['addPieces_6']?.count||0)+(byOp['addPieces_7']?.count||0)+(byOp['addPieces_9']?.count||0)+(byOp['addPieces_10']?.count||0));
