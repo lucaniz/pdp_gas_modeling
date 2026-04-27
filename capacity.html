@@ -721,9 +721,15 @@ function congestionFromBF(bf){
 }
 
 // ── live fetch ────────────────────────────────────────────────────────────────
+function fetchWithTimeout(url, opts={}, ms=5000){
+  const ctrl = new AbortController();
+  const id = setTimeout(()=>ctrl.abort(), ms);
+  return fetch(url, {...opts, signal:ctrl.signal}).finally(()=>clearTimeout(id));
+}
+
 async function fetchBaseFee(){
   try{
-    const r=await fetch('https://api.node.glif.io/rpc/v1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'Filecoin.ChainHead',params:[]})});
+    const r=await fetchWithTimeout('https://api.node.glif.io/rpc/v1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'Filecoin.ChainHead',params:[]})}, 5000);
     const d=await r.json();
     const bf=d?.result?.Blocks?.[0]?.ParentBaseFee;
     if(bf){
@@ -738,7 +744,7 @@ async function fetchBaseFee(){
 
 async function fetchBlocksPerTipset(){
   try{
-    const r=await fetch('https://filfox.info/api/v1/stats/base-fee?duration=24h&samples=24');
+    const r=await fetchWithTimeout('https://filfox.info/api/v1/stats/base-fee?duration=24h&samples=24', {}, 5000);
     const d=await r.json();
     if(d&&d.length>1){
       AVG_BLOCKS_PER_TIPSET=4.91;
