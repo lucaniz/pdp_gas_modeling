@@ -173,7 +173,7 @@ footer a{color:var(--text3)}
 <h1>FWSS gas &amp; cost calculator</h1>
 <div class="sub">
   Fully dynamic — gas values queried live from <a href="https://foc-observer.va.gg">FOC Observer</a> on every page load. <code>provePossession</code> cost uses a <strong>logarithmic model fitted to 630 real mainnet datasets</strong> (R²=0.99). Base fee from <a href="https://api.node.glif.io">Glif</a>. FIL price from <a href="https://coingecko.com">CoinGecko</a>.
-  &nbsp;&middot;&nbsp; <a href="index.html">← back to index</a>
+  &nbsp;&middot;&nbsp; <a href="extreme_modeling.html" style="color:var(--text3);font-size:11px;text-decoration:none;margin-right:12px">⚡ extreme scenarios</a><a href="index.html">← back to index</a>
 </div>
 
 <div class="sbar">
@@ -222,10 +222,10 @@ footer a{color:var(--text3)}
   <h3>2. Empirical gas measurements</h3>
   <p>Gas unit values for <code>createDataSet</code>, <code>addPieces</code>, <code>nextProvingPeriod</code>, and <code>terminateService</code> are <strong>empirical averages</strong> from all real mainnet transactions since FWSS v1.2.0 (block 5,864,769), queried live from FOC Observer on every page load. These are not estimates or assumptions — they are measured values.</p>
   <div class="stat-row">
-    <div class="stat-box"><div class="sv">352</div><div class="sl">createDataSet txns</div></div>
-    <div class="stat-box"><div class="sv">325k+</div><div class="sl">addPieces txns</div></div>
-    <div class="stat-box"><div class="sv">11,134</div><div class="sl">provePossession txns</div></div>
-    <div class="stat-box"><div class="sv">11,749</div><div class="sl">nextProvingPeriod txns</div></div>
+    <div class="stat-box"><div class="sv" id="meth-n-create">—</div><div class="sl">createDataSet txns</div></div>
+    <div class="stat-box"><div class="sv" id="meth-n-add">—</div><div class="sl">addPieces txns</div></div>
+    <div class="stat-box"><div class="sv" id="meth-n-prove">—</div><div class="sl">provePossession txns</div></div>
+    <div class="stat-box"><div class="sv" id="meth-n-npp">—</div><div class="sl">nextProvingPeriod txns</div></div>
   </div>
 
   <h3>3. The provePossession model — why logarithmic?</h3>
@@ -470,7 +470,7 @@ footer a{color:var(--text3)}
   </div>
 
   <div style="font-size:10px;color:var(--text3);margin-top:.5rem">
-    Piece count slider is log₂ scale · click labels to jump · removePieces scales sublinearly (empirical k^0.6 fit)
+    Piece count slider is log₂ scale · click labels to jump · removePieces: observed values K≤144, K^0.614 extrapolation beyond
   </div>
 </div>
 
@@ -1306,14 +1306,19 @@ function updatePieceCalc(log2val) {
   const BATCH_BASE = 139.9e6, BATCH_MARGINAL = 66.3e6;
   const addGasPerTx = BATCH_BASE + BATCH_MARGINAL * batchK;
   const addGasPerPiece = addGasPerTx / batchK;
-  // removePieces: use live ×1 value, scale sublinearly
-  const rem1 = (typeof GAS !== 'undefined' ? GAS.removePieces1 : 0) || 437e6;
-  function remGasFor(k) {
-    if(k === 0) return 0;
-    // Sublinear scaling: empirical ~437M at ×1, ~93M/piece at ×9, ~60M/piece at ×80+
-    // Use: gas = rem1 * k^0.6 as approximation
-    return rem1 * Math.pow(k, 0.6);
-  }
+  // removePieces gas model — observed data for K≤144, K^0.614 extrapolation beyond
+const REM_OBS={1:407e6,2:601e6,3:781e6,4:950e6,5:1010e6,9:840e6,20:1754e6,50:5900e6,80:9530e6,125:8075e6,144:8600e6};
+const REM_EXP=0.614;
+function remGas(K){
+  K=Math.max(1,Math.round(K));
+  if(REM_OBS[K]!==undefined) return REM_OBS[K];
+  if(K>144) return 407e6*Math.pow(K,REM_EXP);
+  const ks=Object.keys(REM_OBS).map(Number).sort((a,b)=>a-b);
+  let lo=ks[0],hi=ks[ks.length-1];
+  for(let i=0;i<ks.length-1;i++){if(ks[i]<=K&&ks[i+1]>=K){lo=ks[i];hi=ks[i+1];break;}}
+  return REM_OBS[lo]+(K-lo)/(hi-lo)*(REM_OBS[hi]-REM_OBS[lo]);
+}
+  function remGasFor(k) { return k===0 ? 0 : remGas(k); }
   // addN pieces per day, split into ceil(addN/batchK) txns
   const addTxnsDay = Math.ceil(addN / batchK);
   const addGasDay = addTxnsDay * addGasPerTx;
@@ -1433,6 +1438,14 @@ function renderGasRefGrid(){
     const valColor=o.warn?'#A32D2D':'';
     return`<div class="gas-ref-item" style="${border};${warnStyle}"><div class="gas-ref-label" style="${labelColor}">${o.label}<span style="background:${bc};color:${tc};font-size:9px;padding:1px 4px;border-radius:2px;font-weight:600;margin-left:3px">${o.badge}</span></div><div class="gas-ref-value" style="color:${valColor}">${fGas(o.val)}</div><div class="gas-ref-sub">${o.freq}</div></div>`;
   }).join('');
+  // Update methodology stat-boxes
+  if(document.getElementById('meth-n-create')) {
+    const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M+' : n >= 1000 ? Math.round(n/1000)+'k+' : n.toLocaleString();
+    document.getElementById('meth-n-create').textContent = fmt(byOp['createDataSet']?.count || 0);
+    document.getElementById('meth-n-add').textContent = fmt((byOp['addPieces_1']?.count||0)+(byOp['addPieces_2']?.count||0)+(byOp['addPieces_3']?.count||0)+(byOp['addPieces_4']?.count||0)+(byOp['addPieces_5']?.count||0)+(byOp['addPieces_6']?.count||0)+(byOp['addPieces_7']?.count||0)+(byOp['addPieces_9']?.count||0)+(byOp['addPieces_10']?.count||0));
+    document.getElementById('meth-n-prove').textContent = fmt(byOp['provePossession']?.count || 0);
+    document.getElementById('meth-n-npp').textContent = fmt(byOp['nextProvingPeriod']?.count || 0);
+  }
   document.getElementById('gas-data-info').textContent='LIVE = queried from FOC Observer REST API on page load. MODEL = 158.67M + 8.485M × log₂(pieces), R²=0.99, 630 datasets. ⚠ removePieces: ~2B gas/tx avg — ~6× more expensive than addPieces (scales sublinearly, ~60–80M/piece asymptote at large K). Batch sizes ×2–×9 have very few observed txns (≤284); treat as indicative.';
 }
 
