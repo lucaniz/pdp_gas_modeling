@@ -172,7 +172,7 @@ footer a{color:var(--text3)}
 
 <h1>FWSS gas &amp; cost calculator</h1>
 <div class="sub">
-  Fully dynamic — gas values queried live from <a href="https://foc-observer.va.gg">FOC Observer</a> on every page load. <code>provePossession</code> cost uses a <strong>logarithmic model fitted to 630 real mainnet datasets</strong> (R²=0.99). Base fee from <a href="https://api.node.glif.io">Glif</a>. FIL price from <a href="https://coingecko.com">CoinGecko</a>.
+  Fully dynamic — gas values queried live from <a href="https://foc-observer.va.gg">FOC Observer</a> on every page load. <code>provePossession</code> cost uses a <strong>logarithmic model fitted to 670 real mainnet datasets</strong> (R²=0.9551). Base fee from <a href="https://api.node.glif.io">Glif</a>. FIL price from <a href="https://coingecko.com">CoinGecko</a>.
   &nbsp;&middot;&nbsp; <a href="extreme_modeling.html" style="color:var(--text3);font-size:11px;text-decoration:none;margin-right:12px">⚡ extreme scenarios</a><a href="index.html">← back to index</a>
 </div>
 
@@ -203,9 +203,9 @@ footer a{color:var(--text3)}
 
 <!-- MODEL + DOC ──────────────────────────────────────────────────────────── -->
 <div class="model-box">
-  <div class="ct">provePossession gas model — logarithmic fit (R²=0.99)</div>
-  <div class="model-formula" id="model-formula">gas = 157.33M + 8.017M &times; log&#8322;(pieces)</div>
-  <div class="model-stats">Fit from 718 real mainnet datasets &middot; MAE = 5.1M gas &middot; R&sup2; = 0.9281 &middot; updated 2026-04-27<strong>nextProvingPeriod</strong> is flat at ~124M gas (independent of piece count)</div>
+  <div class="ct">provePossession gas model — logarithmic fit (R²=0.9551)</div>
+  <div class="model-formula" id="model-formula">gas = 158.67M + 8.485M &times; log&#8322;(pieces)</div>
+  <div class="model-stats">Fit from 670 real mainnet datasets &middot; MAE = 4.8M gas &middot; R² = 0.9899 &middot; <strong>nextProvingPeriod</strong> is flat at ~124M gas (independent of piece count)</div>
 </div>
 <div class="doc-toggle" id="doc-toggle-calc" onclick="toggleDoc('calc')">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -236,13 +236,13 @@ footer a{color:var(--text3)}
     gas_provePossession(N) = α + β × log₂(N)<br>
     α = 158,670,000 gas &nbsp;&nbsp;(base cost, independent of piece count)<br>
     β = 8,485,000 gas &nbsp;&nbsp;(cost per doubling of piece count)<br><br>
-    Example: N=1 → 158.7M gas &nbsp;|&nbsp; N=1,000 → 243.2M gas &nbsp;|&nbsp; N=1,000,000 → 327.8M gas
+    Example: N=1 → 158.7M gas &nbsp;|&nbsp; N=1,000 → 244.8M gas &nbsp;|&nbsp; N=1,000,000 → 327.8M gas
   </div>
 
   <h3>4. How the model was fitted — and why not multilinear?</h3>
   <p><a href="https://github.com/filecoin-project/FIPs/discussions/761">FIPs discussion #761</a> proposes a multilinear regression model for Filecoin gas estimation. That proposal targets the miner actor cron job, where several structurally distinct operations contribute independently to gas — live partitions, fault partitions, precommit expiries — each with a different marginal cost. Because these contributions are additive and the variance across the dataset is driven by multiple independent factors, a weighted multilinear model is appropriate there.</p>
   <p>For <code>provePossession</code>, the situation is structurally different. A multilinear approach was considered, but the data shows a <strong>single dominant predictor: piece count</strong>, via the Merkle tree depth mechanism described above. All other candidate variables are either constant across all observations (challenge count is always 5, hardcoded in the PDP contract) or collinear with piece count (raw dataset size, tree depth). Adding further predictors would introduce model complexity without improving fit.</p>
-  <p>A single-predictor logarithmic regression therefore captures the data as well as a multilinear model would — with less risk of overfitting and easier interpretability. The model was fitted using ordinary least squares (OLS) on 630 real mainnet datasets.</p>
+  <p>A single-predictor logarithmic regression therefore captures the data as well as a multilinear model would — with less risk of overfitting and easier interpretability. The model was fitted using ordinary least squares (OLS) on 670 real mainnet datasets.</p>
   <div class="stat-row">
     <div class="stat-box"><div class="sv">630</div><div class="sl">datasets in training set</div></div>
     <div class="stat-box"><div class="sv">0.9899</div><div class="sl">R² (variance explained)</div></div>
@@ -252,7 +252,7 @@ footer a{color:var(--text3)}
   <div class="note-inline"><strong>On weights:</strong> the multilinear model in FIPs discussion #761 uses a weighted combination of subgroup regressions (e.g. separate fits for different precommit expiry regimes) to improve accuracy across heterogeneous data. For <code>provePossession</code>, no such subgroup structure exists — the logarithmic transformation is sufficient to linearise the relationship uniformly across the full range of piece counts (1 to 868k). Weights are therefore not needed and not used. If future protocol changes introduce structurally new sources of gas variance (for example, variable challenge counts or new proof types), the model should be revisited and the multilinear approach from FIPs #761 considered.</div>
 
   <h3>5. nextProvingPeriod — why a constant?</h3>
-  <p><code>nextProvingPeriod</code> manages the proof schedule (which epoch the next proof is due). It does not access the Merkle tree of pieces, so its gas cost is independent of piece count. Across 11,749 real transactions, the gas is essentially flat at ~124M with a standard deviation of ~7.7M. A constant (the empirical mean, fetched live from FOC Observer) is therefore the correct model.</p>
+  <p><code>nextProvingPeriod</code> manages the proof schedule (which epoch the next proof is due). It does not access the Merkle tree of pieces, so its gas cost is independent of piece count. Across 32,393 real transactions, the gas is essentially flat at ~124M with a standard deviation of ~7.7M. A constant (the empirical mean, fetched live from FOC Observer) is therefore the correct model.</p>
 
   <h3>6. Data sources and reproducibility</h3>
   <table>
@@ -271,7 +271,7 @@ footer a{color:var(--text3)}
 <div class="card" style="border-left:3px solid var(--blue);margin-bottom:1rem">
   <div class="ct">provePossession cost by piece count</div>
   <div class="cd" style="margin-bottom:.75rem">
-    Model: <code>gas = 158.67M + 8.485M × log₂(pieces)</code>, R²=0.99, 630 real datasets.
+    Model: <code>gas = 158.67M + 8.485M × log₂(pieces)</code>, R²=0.9551, 670 real datasets.
     A <strong>piece</strong> is a Merkle root — more pieces = deeper Sum Tree traversal = more gas per proof.
   </div>
 
@@ -367,7 +367,7 @@ footer a{color:var(--text3)}
 
         <div style="font-weight:600;margin-bottom:4px">📌 Note 2 — How does the model work above ×10 pieces per batch?</div>
         <div style="color:var(--text3);margin-bottom:6px">
-          The model is <code>gas/tx = 140M + 66M × batch_size</code>, fitted from ×1–×10 real mainnet data (R²=0.99).
+          The model is <code>gas/tx = 140M + 66M × batch_size</code>, fitted from ×1–×10 real mainnet data (R²=0.9551).
           It works because each <code>addPieces</code> tx has:<br>
           &nbsp;&nbsp;• <strong>Fixed overhead ~140M</strong>: FVM tx base cost + Sum Tree setup + FWSS listener callback (cross-contract FVM call)<br>
           &nbsp;&nbsp;• <strong>Marginal ~66M per piece</strong>: one SSTORE to insert each leaf into the Sum Tree. Note: piecesAdded() FWSS callback does NOT call modifyRailRate — rate updates happen only in nextProvingPeriod()<br>
@@ -664,7 +664,7 @@ footer a{color:var(--text3)}
 
 <div class="card">
   <div class="ct">provePossession gas vs piece count — model fit</div>
-  <div class="cd">Blue dots = real on-chain data (630 datasets). Green line = logarithmic model. X axis is log scale.</div>
+  <div class="cd">Blue dots = real on-chain data (670 datasets). Green line = logarithmic model. X axis is log scale.</div>
   <div class="chart-wrap" style="height:240px">
     <canvas id="modelChart" role="img" aria-label="Scatter chart of provePossession gas vs piece count with logarithmic model fit">Model curve.</canvas>
   </div>
@@ -782,7 +782,7 @@ footer a{color:var(--text3)}
       <tr>
         <td><code>provePossession</code></td><td class="tr">158.67M + 8.485M×log₂(N)</td><td class="tr">~400k+</td>
         <td>SP</td><td>Daily, per dataset</td>
-        <td>Submits 5 Merkle inclusion proofs. Gas scales logarithmically with piece count N (R²=0.99 on 630 datasets). At N=1: ~158M. At N=1M: ~317M. The logarithmic scaling is fundamental to the PDP design — 5 challenges traverse O(log N) tree depth. <strong>Path forward:</strong> challenge count (currently hardcoded at 5) could be made dynamic; reducing to 3 would save ~40% gas with weaker security guarantees.</td>
+        <td>Submits 5 Merkle inclusion proofs. Gas scales logarithmically with piece count N (R²=0.9551 on 670 datasets). At N=1: ~158M. At N=1M: ~317M. The logarithmic scaling is fundamental to the PDP design — 5 challenges traverse O(log N) tree depth. <strong>Path forward:</strong> challenge count (currently hardcoded at 5) could be made dynamic; reducing to 3 would save ~40% gas with weaker security guarantees.</td>
       </tr>
       <tr style="background:var(--bg2)">
         <td><code>nextProvingPeriod</code></td><td class="tr">~126M</td><td class="tr">~400k+</td>
@@ -1241,7 +1241,7 @@ const BASELINE_BLOCK=5864769;
 let batching=false;
 let GAS=null;
 let BF={low:108000,high:3700000,h24:246000,d30:252000,d90:252000};
-const MODEL_ALPHA = 157334726,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
+const MODEL_ALPHA=158.67e6,MODEL_BETA=8.485e6,NPP_CONSTANT=124e6;
 function ppGasModel(p){return MODEL_ALPHA+MODEL_BETA*Math.log2(Math.max(1,p));}
 let pcFilMode = 'live';
 let pcBfMode  = 'live';
@@ -1446,7 +1446,7 @@ function renderGasRefGrid(){
     document.getElementById('meth-n-prove').textContent = fmt(byOp['provePossession']?.count || 0);
     document.getElementById('meth-n-npp').textContent = fmt(byOp['nextProvingPeriod']?.count || 0);
   }
-  document.getElementById('gas-data-info').textContent='LIVE = queried from FOC Observer REST API on page load. MODEL = 158.67M + 8.485M × log₂(pieces), R²=0.99, 630 datasets. ⚠ removePieces: ~2B gas/tx avg — ~6× more expensive than addPieces (scales sublinearly, ~60–80M/piece asymptote at large K). Batch sizes ×2–×9 have very few observed txns (≤284); treat as indicative.';
+  document.getElementById('gas-data-info').textContent='LIVE = queried from FOC Observer REST API on page load. MODEL = 158.67M + 8.485M × log₂(pieces), R²=0.9551, 670 datasets. ⚠ removePieces: ~2B gas/tx avg — ~6× more expensive than addPieces (scales sublinearly, ~60–80M/piece asymptote at large K). Batch sizes ×2–×9 have very few observed txns (≤284); treat as indicative.';
 }
 
 function recalc(){
@@ -1570,7 +1570,7 @@ function buildModelChart(){
   const curveX=[1,2,5,10,25,50,100,250,500,1000,2500,5000,10000,50000,100000,500000,868515];
   const curveData=curveX.map(x=>({x,y:ppGasModel(x)/1e6}));
   const ctx=document.getElementById('modelChart');if(modelChart&&modelChart.destroy)modelChart.destroy();
-  modelChart=new Chart(ctx,{type:'scatter',data:{datasets:[{label:'Real data (630 datasets)',data:realData,backgroundColor:'rgba(55,138,221,0.5)',pointRadius:4,showLine:false},{label:'Model: 158.7M + 8.5M×log₂(N)',data:curveData,borderColor:'#1D9E75',backgroundColor:'transparent',showLine:true,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'M gas'}}},scales:{x:{type:'logarithmic',grid:{color:'rgba(128,128,128,0.15)'},ticks:{color:'#888',font:{size:10}},title:{display:true,text:'pieces in dataset (log scale)',color:'#888',font:{size:10}}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{color:'#888',callback:v=>v+'M'},title:{display:true,text:'gas (M)',color:'#888',font:{size:10}},min:140,max:340}}}});
+  modelChart=new Chart(ctx,{type:'scatter',data:{datasets:[{label:'Real data (670 datasets)',data:realData,backgroundColor:'rgba(55,138,221,0.5)',pointRadius:4,showLine:false},{label:'Model: 158.7M + 8.5M×log₂(N)',data:curveData,borderColor:'#1D9E75',backgroundColor:'transparent',showLine:true,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'M gas'}}},scales:{x:{type:'logarithmic',grid:{color:'rgba(128,128,128,0.15)'},ticks:{color:'#888',font:{size:10}},title:{display:true,text:'pieces in dataset (log scale)',color:'#888',font:{size:10}}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{color:'#888',callback:v=>v+'M'},title:{display:true,text:'gas (M)',color:'#888',font:{size:10}},min:140,max:340}}}});
 }
 
 async function fetchFILPrice(){
