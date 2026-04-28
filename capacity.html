@@ -269,7 +269,7 @@ footer a{color:var(--text3)}
 <div class="g4" style="margin-bottom:1rem">
   <div class="metric"><div class="ml">Current base fee</div><div class="mv info" id="m-bf">—</div><div class="ms">attoFIL · Glif live</div></div>
   <div class="metric"><div class="ml">Gas target/tipset</div><div class="mv" id="m-target">~23.5B</div><div class="ms">5B × avg blocks/tipset</div></div>
-  <div class="metric"><div class="ml">Active FWSS datasets</div><div class="mv ok" id="m-ds">~480</div><div class="ms">proving today (FOC Observer)</div></div>
+  <div class="metric"><div class="ml">Active FWSS datasets</div><div class="mv ok" id="m-ds">~480</div><div class="ms">proven last 24h · 475 active total</div></div>
   <div class="metric"><div class="ml">FWSS gas/tipset</div><div class="mv ok" id="m-fwss-tipset">—</div><div class="ms">proving only, uniform spread</div></div>
   <div class="metric"><div class="ml">FWSS % of gas target</div><div class="mv ok" id="m-fwss-pct">—</div><div class="ms">share of per-tipset target</div></div>
 </div>
@@ -991,10 +991,10 @@ async function fetchAll(){
 
 // Real FWSS data from FOC Observer (queried 2026-04-22)
 const FWSS_REAL = {
-  datasets:   475,
-  pieces:     903933,
-  bytes:      3119557658258,
-  avgPieceBytes: 3451093,
+  datasets: 475,
+  pieces: 903956,
+  bytes: 3119563128975,
+  avgPieceBytes: 3451012,
 };
 
 async function fetchNetworkGasSpacescope(){
