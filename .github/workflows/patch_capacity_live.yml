@@ -17,8 +17,6 @@ jobs:
           with open('capacity.html', 'r') as f:
               content = f.read()
 
-          # Inject a live FOC query at the start of fetchAll()
-          # to update HIST last entry dynamically on every refresh
           live_query = """
           // Live dataset count from FOC Observer
           try {
@@ -26,11 +24,7 @@ jobs:
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({
-                sql: `SELECT
-                  COUNT(DISTINCT set_id) as proven_24h,
-                  COALESCE(SUM(gas_used),0) as pp_gas
-                  FROM pdp_possession_proven
-                  WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+                sql: `SELECT COUNT(DISTINCT set_id) as proven_24h, COALESCE(SUM(gas_used),0) as pp_gas FROM pdp_possession_proven WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
                 network: 'mainnet'
               })
             });
@@ -42,33 +36,37 @@ jobs:
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({
-                sql: `SELECT COALESCE(SUM(gas_used),0) as npp_gas
-                      FROM pdp_next_proving_period
-                      WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+                sql: `SELECT COALESCE(SUM(gas_used),0) as npp_gas FROM pdp_next_proving_period WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
                 network: 'mainnet'
               })
             });
             const nppData = await nppRes.json();
             const nppGas = parseInt(nppData.rows[0].npp_gas);
 
-            // Update HIST last entry with live data
-            const today = new Date();
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const dayLabel = today.getUTCDate() + ' ' + months[today.getUTCMonth()];
+            const now = new Date();
+            const dayLabel = now.getUTCDate() + ' ' + months[now.getUTCMonth()];
             HIST[HIST.length - 1] = {day: dayLabel, ds: proven24h, gas: ppGas + nppGas};
+
             document.getElementById('m-ds').textContent = proven24h.toLocaleString();
+
+            // Re-render threshold table and current state with updated HIST
+            if (typeof renderCapacityThresholds === 'function') {
+              const dailyTarget = GAS_TARGET_PER_BLOCK * AVG_BLOCKS_PER_TIPSET * TIPSETS_PER_DAY;
+              renderCapacityThresholds(15326.8e9, dailyTarget);
+            }
+            if (typeof renderCurrentState === 'function') renderCurrentState();
           } catch(e) {
             console.warn('Live FOC query failed:', e);
           }
           """
 
-          # Insert after: setStatus('spin','Loading live data...');
           old = "setStatus('spin','Loading live data...');"
           new = old + live_query
 
           if old in content:
               content = content.replace(old, new, 1)
-              print('✓ Injected live FOC query into fetchAll')
+              print('✓ Injected live query with renderCapacityThresholds call')
           else:
               print('NOT FOUND')
 
@@ -82,5 +80,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f capacity.html
-          git commit --allow-empty -m "feat: refresh button now queries FOC Observer live for proven datasets"
+          git commit --allow-empty -m "fix: re-render threshold table after live FOC query"
           git push
