@@ -10,13 +10,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
- 
+
       - name: Fetch live data and patch capacity.html
         run: |
           python3 - << 'PYEOF'
           import urllib.request, json, re, math
           from datetime import datetime
- 
+
           def foc_query(sql):
               req = urllib.request.Request(
                   'https://foc-observer.va.gg/sql',
@@ -26,9 +26,29 @@ jobs:
               )
               with urllib.request.urlopen(req, timeout=30) as r:
                   return json.loads(r.read())['rows']
- 
-          # 1. Get live active dataset count and total stats
+
+          # 1. Datasets proven in last 24h + their gas
           rows = foc_query('''
+              SELECT
+                COUNT(DISTINCT set_id) as proven_24h,
+                COALESCE(SUM(gas_used), 0) as pp_gas
+              FROM pdp_possession_proven
+              WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400
+          ''')
+          proven_24h = int(rows[0]['proven_24h'])
+          pp_gas = int(rows[0]['pp_gas'])
+
+          npp_rows = foc_query('''
+              SELECT COALESCE(SUM(gas_used), 0) as npp_gas
+              FROM pdp_next_proving_period
+              WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400
+          ''')
+          npp_gas = int(npp_rows[0]['npp_gas'])
+          total_gas = pp_gas + npp_gas
+          print(f'Proven 24h: {proven_24h} datasets, {total_gas/1e9:.1f} Ggas')
+
+          # 2. Active datasets total + FWSS_REAL stats
+          real_rows = foc_query('''
               SELECT
                 COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active,
                 COUNT(DISTINCT p.piece_id) as pieces,
@@ -38,81 +58,54 @@ jobs:
               LEFT JOIN fwss_piece_added p ON p.data_set_id = f.data_set_id
               WHERE t.data_set_id IS NULL
           ''')
-          active  = int(rows[0]['active'])
-          pieces  = int(rows[0]['pieces'])
-          tbytes  = int(rows[0]['total_bytes'])
-          print(f'Live: {active} active datasets, {pieces} pieces, {tbytes/1024**4:.2f} TiB')
- 
-          # 2. Get today's proving gas (for HIST last entry)
-          today_rows = foc_query('''
-              SELECT
-                COUNT(DISTINCT set_id) as proving_ds,
-                COALESCE(SUM(gas_used), 0) as total_gas
-              FROM pdp_possession_proven
-              WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400
-          ''')
-          proving_ds  = int(today_rows[0]['proving_ds'])
-          proving_gas = int(today_rows[0]['total_gas'])
- 
-          # Also add nextProvingPeriod gas
-          npp_rows = foc_query('''
-              SELECT COALESCE(SUM(gas_used), 0) as npp_gas
-              FROM pdp_next_proving_period
-              WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400
-          ''')
-          npp_gas = int(npp_rows[0]['npp_gas'])
-          total_daily_gas = proving_gas + npp_gas
- 
-          print(f'Today: {proving_ds} datasets proving, {total_daily_gas/1e9:.1f} Ggas')
- 
-          today_label = datetime.utcnow().strftime('%-d %b').replace(' 0', ' ')
-          print(f'Today label: {today_label}')
- 
+          active = int(real_rows[0]['active'])
+          pieces = int(real_rows[0]['pieces'])
+          tbytes = int(real_rows[0]['total_bytes'])
+          print(f'Active total: {active}, pieces: {pieces}')
+
+          today_label = datetime.utcnow().strftime('%-d %b')
+
           with open('capacity.html', 'r') as f:
               content = f.read()
- 
-          # 3. Replace last HIST entry with today's live data
-          # Pattern: {day:'...',ds:NNN,gas:NNN}
+
+          # 3. Update HIST last entry with proven_24h + real gas
           hist_pattern = re.compile(r"(\{day:'[^']*',ds:)(\d+)(,gas:)(\d+)(\}(?:\s*\];))")
           m = hist_pattern.search(content)
           if m:
-              new_entry = f"{{day:'{today_label}',ds:{active},gas:{total_daily_gas}}}" + "];"
+              new_entry = f"{{day:'{today_label}',ds:{proven_24h},gas:{total_gas}}}];"
               content = content[:m.start()] + new_entry + content[m.end():]
-              print(f'Patched last HIST entry: ds={active}, gas={total_daily_gas}')
+              print(f'Patched HIST: ds={proven_24h}')
           else:
-              print('WARNING: could not find last HIST entry pattern')
- 
-          # 4. Update FWSS_REAL object
+              print('WARNING: HIST pattern not found')
+
+          # 4. Update FWSS_REAL with active totals
           avg_piece = tbytes // pieces if pieces > 0 else 2270284
-          fwss_real_new = (
-              f"const FWSS_REAL = {{\n"
-              f"  datasets:   {active},\n"
-              f"  pieces:     {pieces},\n"
-              f"  bytes:      {tbytes},\n"
-              f"  avgPieceBytes: {avg_piece},\n"
-              f"}};"
-          )
           content = re.sub(
               r'const FWSS_REAL = \{[^}]+\};',
-              fwss_real_new,
+              f'const FWSS_REAL = {{\n  datasets: {active},\n  pieces: {pieces},\n  bytes: {tbytes},\n  avgPieceBytes: {avg_piece},\n}};',
               content
           )
-          print(f'Patched FWSS_REAL: datasets={active}, pieces={pieces}')
- 
-          # 5. Update hardcoded text mentions
-          content = re.sub(r'\b632 active datasets\b', f'{active} active datasets', content)
-          content = re.sub(r'\b630 active datasets\b', f'{active} active datasets', content)
-          content = re.sub(r'\b480 active datasets\b', f'{active} active datasets', content)
- 
+
+          # 5. Fix "Active FWSS datasets" label to say "proven last 24h"
+          content = content.replace(
+              'proving today (FOC Observer)',
+              f'proven last 24h · {active} active total'
+          )
+
+          # 6. Fix hardcoded text mentions
+          for old in ['632 active datasets', '630 active datasets', '480 active datasets',
+                      '475 active datasets', '289 active datasets']:
+              content = content.replace(old, f'{active} active datasets')
+
           with open('capacity.html', 'w') as f:
               f.write(content)
           print(f'Done: {len(content)} chars')
           PYEOF
- 
+
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f capacity.html
-          git commit --allow-empty -m "fix: patch HIST last entry and FWSS_REAL with live FOC Observer data"
+          git commit --allow-empty -m "fix: today = proven last 24h, label clarified"
           git push
