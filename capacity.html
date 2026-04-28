@@ -864,7 +864,7 @@ function renderDistBars(){
 // ── thresholds ────────────────────────────────────────────────────────────────
 function renderThresholdTable(){
   const avgG=weightedAvgGasPerDataset();
-  const current=HIST[HIST.length-1].ds;
+  const current=(window.LIVE_ACTIVE_DS || HIST[HIST.length-1].ds);
   // No reliable public source for non-FWSS gas; thresholds relative to full target
   const thresholds=[
     {label:'1% of full gas target',pct:0.01},
@@ -1081,7 +1081,7 @@ function renderCapacityThresholds(networkTotal, dailyTarget){
   const bytesPerPiece = FWSS_REAL.bytes / FWSS_REAL.pieces;       // ~2.3 MB
   const bytesPerDS = FWSS_REAL.bytes / FWSS_REAL.datasets;         // ~3.9 GB
   const avgGasPerDS = weightedAvgGasPerDataset();
-  const currentDS = HIST[HIST.length-1].ds;
+  const currentDS = (window.LIVE_ACTIVE_DS || HIST[HIST.length-1].ds);
   const currentFWSS = HIST[HIST.length-1].gas;
 
   const scenarios = [
@@ -1207,24 +1207,50 @@ window.addEventListener('DOMContentLoaded', () => {
     const r = await fetch('https://foc-observer.va.gg/sql', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        sql: 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id = f.data_set_id',
+        sql: 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active, COUNT(p.piece_id) as pieces, ROUND(SUM(p.raw_size)/1024.0/1024/1024/1024,2) as tib FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id=f.data_set_id LEFT JOIN fwss_piece_added p ON p.data_set_id=f.data_set_id WHERE t.data_set_id IS NULL',
         network: 'mainnet'
       })
     });
     const d = await r.json();
-    const active = parseInt(d.rows[0].active);
+    const row = d.rows[0];
+    const active = parseInt(row.active);
+    const pieces = parseInt(row.pieces);
+    const tib = parseFloat(row.tib);
+
+    // Fix forecast starting value
     const inp = document.getElementById('f-start');
     if (inp) { inp.value = active; if (typeof runForecast === 'function') runForecast(); }
+
+    // Fix m-ds element (active datasets counter)
     const el = document.getElementById('m-ds');
     if (el) el.textContent = active.toLocaleString();
+
+    // Fix threshold table 'Today' row — find all td elements
+    // The today row has class 'today' or is the first data row
+    document.querySelectorAll('td, th').forEach(function(td) {
+      const txt = td.textContent.trim();
+      // Find the today datasets cell — it shows a small number (current active)
+      if (td.classList.contains('today-ds') || td.id === 'thresh-today-ds') {
+        td.textContent = active.toLocaleString();
+      }
+    });
+
+    // Override recalcThresholds if it exists, to use live active count
+    const origRecalc = window.recalcThresholds;
+    window.LIVE_ACTIVE_DS = active;
+    window.LIVE_PIECES = pieces;
+    window.LIVE_TIB = tib;
+    if (typeof recalcThresholds === 'function') recalcThresholds();
+
+    // Fix static text
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     let node;
     while (node = walker.nextNode()) {
       let t = node.textContent, changed = false;
-      ['632 active datasets','630 active datasets','480 active datasets'].forEach(old => {
+      ['632 active datasets','630 active datasets','480 active datasets','475 active datasets'].forEach(function(old) {
         if (t.includes(old)) { t = t.split(old).join(active.toLocaleString() + ' active datasets'); changed = true; }
       });
-      if (t.includes('~480')) { t = t.replace(/~480/g, '~' + active.toLocaleString()); changed = true; }
+      if (t.match(/~?480(?! )/)) { t = t.replace(/~?480(?! )/g, '~' + active.toLocaleString()); changed = true; }
       if (changed) node.textContent = t;
     }
   } catch(e) { console.warn('patch failed', e); }
