@@ -967,6 +967,47 @@ function renderSensitivity(dsBase,pBase){
 // ── init ──────────────────────────────────────────────────────────────────────
 async function fetchAll(){
   setStatus('spin','Loading live data...');
+// Live dataset count from FOC Observer
+try {
+  const focRes = await fetch('https://foc-observer.va.gg/sql', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      sql: `SELECT
+        COUNT(DISTINCT set_id) as proven_24h,
+        COALESCE(SUM(gas_used),0) as pp_gas
+        FROM pdp_possession_proven
+        WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+      network: 'mainnet'
+    })
+  });
+  const focData = await focRes.json();
+  const proven24h = parseInt(focData.rows[0].proven_24h);
+  const ppGas = parseInt(focData.rows[0].pp_gas);
+
+  const nppRes = await fetch('https://foc-observer.va.gg/sql', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      sql: `SELECT COALESCE(SUM(gas_used),0) as npp_gas
+            FROM pdp_next_proving_period
+            WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+      network: 'mainnet'
+    })
+  });
+  const nppData = await nppRes.json();
+  const nppGas = parseInt(nppData.rows[0].npp_gas);
+
+  // Update HIST last entry with live data
+  const today = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dayLabel = today.getUTCDate() + ' ' + months[today.getUTCMonth()];
+  HIST[HIST.length - 1] = {day: dayLabel, ds: proven24h, gas: ppGas + nppGas};
+  document.getElementById('m-ds').textContent = proven24h.toLocaleString();
+} catch(e) {
+  console.warn('Live FOC query failed:', e);
+}
+
   try {
     await Promise.allSettled([fetchBaseFee(),fetchBlocksPerTipset()]);
     try { renderCurrentState(); } catch(e) { console.error('renderCurrentState',e); }
