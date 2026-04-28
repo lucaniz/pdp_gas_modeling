@@ -11,86 +11,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch dataset counts in capacity.html
+      - name: Fetch live dataset count and patch capacity.html
         run: |
           python3 - << 'PYEOF'
-          patch = (
-            "<script>\n"
-            "(async function patchDatasetCounts() {\n"
-            "  try {\n"
-            "    const r = await fetch('https://foc-observer.va.gg/sql', {\n"
-            "      method: 'POST', headers: {'Content-Type': 'application/json'},\n"
-            "      body: JSON.stringify({\n"
-            "        sql: 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active, COUNT(p.piece_id) as pieces, ROUND(SUM(p.raw_size)/1024.0/1024/1024/1024,2) as tib FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id=f.data_set_id LEFT JOIN fwss_piece_added p ON p.data_set_id=f.data_set_id WHERE t.data_set_id IS NULL',\n"
-            "        network: 'mainnet'\n"
-            "      })\n"
-            "    });\n"
-            "    const d = await r.json();\n"
-            "    const row = d.rows[0];\n"
-            "    const active = parseInt(row.active);\n"
-            "    const pieces = parseInt(row.pieces);\n"
-            "    const tib = parseFloat(row.tib);\n"
-            "\n"
-            "    // Fix forecast starting value\n"
-            "    const inp = document.getElementById('f-start');\n"
-            "    if (inp) { inp.value = active; if (typeof runForecast === 'function') runForecast(); }\n"
-            "\n"
-            "    // Fix m-ds element (active datasets counter)\n"
-            "    const el = document.getElementById('m-ds');\n"
-            "    if (el) el.textContent = active.toLocaleString();\n"
-            "\n"
-            "    // Fix threshold table 'Today' row — find all td elements\n"
-            "    // The today row has class 'today' or is the first data row\n"
-            "    document.querySelectorAll('td, th').forEach(function(td) {\n"
-            "      const txt = td.textContent.trim();\n"
-            "      // Find the today datasets cell — it shows a small number (current active)\n"
-            "      if (td.classList.contains('today-ds') || td.id === 'thresh-today-ds') {\n"
-            "        td.textContent = active.toLocaleString();\n"
-            "      }\n"
-            "    });\n"
-            "\n"
-            "    // Override recalcThresholds if it exists, to use live active count\n"
-            "    const origRecalc = window.recalcThresholds;\n"
-            "    window.LIVE_ACTIVE_DS = active;\n"
-            "    window.LIVE_PIECES = pieces;\n"
-            "    window.LIVE_TIB = tib;\n"
-            "    if (typeof recalcThresholds === 'function') recalcThresholds();\n"
-            "\n"
-            "    // Fix static text\n"
-            "    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);\n"
-            "    let node;\n"
-            "    while (node = walker.nextNode()) {\n"
-            "      let t = node.textContent, changed = false;\n"
-            "      ['632 active datasets','630 active datasets','480 active datasets','475 active datasets'].forEach(function(old) {\n"
-            "        if (t.includes(old)) { t = t.split(old).join(active.toLocaleString() + ' active datasets'); changed = true; }\n"
-            "      });\n"
-            "      if (t.match(/~?480(?! )/)) { t = t.replace(/~?480(?! )/g, '~' + active.toLocaleString()); changed = true; }\n"
-            "      if (changed) node.textContent = t;\n"
-            "    }\n"
-            "  } catch(e) { console.warn('patch failed', e); }\n"
-            "})();\n"
-            "</script>\n"
+          import urllib.request, json, re
+
+          # Fetch live active dataset count from FOC Observer
+          req = urllib.request.Request(
+              'https://foc-observer.va.gg/sql',
+              data=json.dumps({
+                  'sql': 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id = f.data_set_id',
+                  'network': 'mainnet'
+              }).encode(),
+              headers={'Content-Type': 'application/json'},
+              method='POST'
           )
-          import re
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              data = json.loads(resp.read())
+          active = int(data['rows'][0]['active'])
+          print(f'Live active datasets: {active}')
+
           with open('capacity.html', 'r') as f:
               content = f.read()
-          # Find recalcThresholds function and patch it to use LIVE_ACTIVE_DS
-          # Look for the today row calculation
-          # Inject override after recalcThresholds definition
-          content = re.sub(r'<!-- dataset-count-patch -->.*?<!-- /dataset-count-patch -->', '', content, flags=re.DOTALL)
 
-          # Also patch the JS: find where today's dataset count is computed
-          # Typically from HIST array last value: HIST[HIST.length-1].ds
+          # Fix 1: patch the last entry of HIST array
+          # HIST entries look like: {day:'Apr 21',ds:132,gas:...}
+          # Replace the ds value in the last HIST entry with live count
           content = re.sub(
-              r'(HIST\[HIST\.length-1\]\.ds)',
-              r'(window.LIVE_ACTIVE_DS || \1)',
+              r"(\{day:'[^']+',ds:)\d+([^}]*\}\s*\];)",
+              lambda m: m.group(1) + str(active) + m.group(2),
               content
           )
 
-          content = content.replace('</body>', '<!-- dataset-count-patch -->' + patch + '<!-- /dataset-count-patch --></body>')
+          # Fix 2: also replace standalone occurrences of old hardcoded counts
+          # in JS variable assignments like: const N_TODAY = 132
+          content = re.sub(r'(const N_TODAY\s*=\s*)\d+', r'\g<1>' + str(active), content)
+          content = re.sub(r'(N_datasets\s*=\s*)\d+(?=\s*[;,/])', r'\g<1>' + str(active), content)
+
           with open('capacity.html', 'w') as f:
               f.write(content)
-          print(f"Done: {len(content)} chars")
+          print(f'Done: {len(content)} chars, active={active}')
           PYEOF
 
       - name: Commit
@@ -98,5 +58,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f capacity.html
-          git commit --allow-empty -m "fix: patch HIST last value with live active dataset count"
+          git commit --allow-empty -m "fix: patch HIST last ds value with live active dataset count"
           git push
