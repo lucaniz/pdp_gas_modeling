@@ -2,7 +2,7 @@ name: Patch capacity dataset counts
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 9 * * *'  # daily at 09:00 UTC
+    - cron: '0 9 * * *'
 jobs:
   patch:
     runs-on: ubuntu-latest
@@ -10,114 +10,55 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Patch dataset counts in capacity.html
         run: |
-          python3 << 'PYEOF'
-          patch = '''
-<script>
-// Patch: update hardcoded dataset counts with live FOC Observer data
-(async function patchDatasetCounts() {
-  try {
-    const r = await fetch('https://foc-observer.va.gg/sql', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        sql: `SELECT
-          COUNT(DISTINCT f.data_set_id) as total,
-          COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active,
-          COUNT(DISTINCT t.data_set_id) as terminated,
-          COUNT(DISTINCT CASE WHEN f.with_cdn THEN f.data_set_id ELSE NULL END) as cdn
-        FROM fwss_data_set_created f
-        LEFT JOIN fwss_service_terminated t ON t.data_set_id = f.data_set_id`,
-        network: 'mainnet'
-      })
-    });
-    const d = await r.json();
-    const row = d.rows[0];
-    const active = parseInt(row.active);
-    const total  = parseInt(row.total);
-    const today  = new Date().toLocaleDateString('en', {month:'short', year:'numeric'});
-
-    // Update all text nodes containing old hardcoded counts
-    function replaceInText(node, old, nw) {
-      if (node.nodeType === 3) { // text node
-        if (node.textContent.includes(old)) {
-          node.textContent = node.textContent.split(old).join(nw);
-        }
-      } else {
-        node.childNodes.forEach(c => replaceInText(c, old, nw));
-      }
-    }
-
-    const body = document.body;
-    // Replace old hardcoded counts with live values
-    ['632', '630', '480'].forEach(old => {
-      // Only replace in context of "datasets" to avoid false positives
-    });
-
-    // More targeted: find elements with specific IDs we control
-    const el_active = document.getElementById('m-ds');
-    if (el_active) el_active.textContent = active.toLocaleString();
-
-    // Update forecast starting value
-    const inp_start = document.getElementById('f-start');
-    if (inp_start && (inp_start.value === '480' || inp_start.value === '632')) {
-      inp_start.value = active;
-      // Trigger recalc if function exists
-      if (typeof runForecast === 'function') runForecast();
-      if (typeof recalcThresholds === 'function') recalcThresholds();
-    }
-
-    // Update static text in methodology
-    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-    let node;
-    while (node = walker.nextNode()) {
-      const txt = node.textContent;
-      if (txt.includes('632 active datasets')) {
-        node.textContent = txt.replace(/632 active datasets/g, active.toLocaleString() + ' active datasets');
-      }
-      if (txt.includes('630 active datasets')) {
-        node.textContent = txt.replace(/630 active datasets/g, active.toLocaleString() + ' active datasets');
-      }
-      if (txt.includes('480 active datasets')) {
-        node.textContent = txt.replace(/480 active datasets/g, active.toLocaleString() + ' active datasets');
-      }
-      if (txt.includes('~480')) {
-        node.textContent = txt.replace(/~480/g, '~' + active.toLocaleString());
-      }
-    }
-
-    // Update the piece distribution section total
-    const patchCounts = document.querySelectorAll('.ds-total-count');
-    patchCounts.forEach(el => el.textContent = active.toLocaleString());
-
-    console.log('Dataset count patched:', active, 'active of', total, 'total');
-  } catch(e) {
-    console.warn('Dataset count patch failed:', e);
-  }
-})();
-</script>
-'''
-          
+          python3 - << 'PYEOF'
+          patch = (
+            "<script>\n"
+            "(async function patchDatasetCounts() {\n"
+            "  try {\n"
+            "    const r = await fetch('https://foc-observer.va.gg/sql', {\n"
+            "      method: 'POST', headers: {'Content-Type': 'application/json'},\n"
+            "      body: JSON.stringify({\n"
+            "        sql: 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id = f.data_set_id',\n"
+            "        network: 'mainnet'\n"
+            "      })\n"
+            "    });\n"
+            "    const d = await r.json();\n"
+            "    const active = parseInt(d.rows[0].active);\n"
+            "    const inp = document.getElementById('f-start');\n"
+            "    if (inp) { inp.value = active; if (typeof runForecast === 'function') runForecast(); }\n"
+            "    const el = document.getElementById('m-ds');\n"
+            "    if (el) el.textContent = active.toLocaleString();\n"
+            "    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);\n"
+            "    let node;\n"
+            "    while (node = walker.nextNode()) {\n"
+            "      let t = node.textContent, changed = false;\n"
+            "      ['632 active datasets','630 active datasets','480 active datasets'].forEach(old => {\n"
+            "        if (t.includes(old)) { t = t.split(old).join(active.toLocaleString() + ' active datasets'); changed = true; }\n"
+            "      });\n"
+            "      if (t.includes('~480')) { t = t.replace(/~480/g, '~' + active.toLocaleString()); changed = true; }\n"
+            "      if (changed) node.textContent = t;\n"
+            "    }\n"
+            "  } catch(e) { console.warn('patch failed', e); }\n"
+            "})();\n"
+            "</script>\n"
+          )
+          import re
           with open('capacity.html', 'r') as f:
               content = f.read()
-          
-          # Remove old patch if present
-          if '<!-- dataset-count-patch -->' in content:
-              import re
-              content = re.sub(r'<!-- dataset-count-patch -->.*?<!-- /dataset-count-patch -->', '', content, flags=re.DOTALL)
-          
-          # Add new patch before </body>
-          patched = content.replace('</body>', '<!-- dataset-count-patch -->' + patch + '<!-- /dataset-count-patch --></body>')
-          
+          content = re.sub(r'<!-- dataset-count-patch -->.*?<!-- /dataset-count-patch -->', '', content, flags=re.DOTALL)
+          content = content.replace('</body>', '<!-- dataset-count-patch -->' + patch + '<!-- /dataset-count-patch --></body>')
           with open('capacity.html', 'w') as f:
-              f.write(patched)
-          print(f"Patched: {len(patched)} chars")
+              f.write(content)
+          print(f"Done: {len(content)} chars")
           PYEOF
+
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f capacity.html
-          git commit --allow-empty -m "fix: live dataset count patch injected into capacity.html"
+          git commit --allow-empty -m "fix: live dataset count patch in capacity.html"
           git push
