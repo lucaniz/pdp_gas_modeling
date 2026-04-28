@@ -1,0 +1,86 @@
+name: Patch capacity live refresh
+on:
+  workflow_dispatch:
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject live FOC query into fetchAll
+        run: |
+          python3 - << 'PYEOF'
+          import re
+
+          with open('capacity.html', 'r') as f:
+              content = f.read()
+
+          # Inject a live FOC query at the start of fetchAll()
+          # to update HIST last entry dynamically on every refresh
+          live_query = """
+          // Live dataset count from FOC Observer
+          try {
+            const focRes = await fetch('https://foc-observer.va.gg/sql', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                sql: `SELECT
+                  COUNT(DISTINCT set_id) as proven_24h,
+                  COALESCE(SUM(gas_used),0) as pp_gas
+                  FROM pdp_possession_proven
+                  WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+                network: 'mainnet'
+              })
+            });
+            const focData = await focRes.json();
+            const proven24h = parseInt(focData.rows[0].proven_24h);
+            const ppGas = parseInt(focData.rows[0].pp_gas);
+
+            const nppRes = await fetch('https://foc-observer.va.gg/sql', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                sql: `SELECT COALESCE(SUM(gas_used),0) as npp_gas
+                      FROM pdp_next_proving_period
+                      WHERE timestamp >= EXTRACT(EPOCH FROM NOW()) - 86400`,
+                network: 'mainnet'
+              })
+            });
+            const nppData = await nppRes.json();
+            const nppGas = parseInt(nppData.rows[0].npp_gas);
+
+            // Update HIST last entry with live data
+            const today = new Date();
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const dayLabel = today.getUTCDate() + ' ' + months[today.getUTCMonth()];
+            HIST[HIST.length - 1] = {day: dayLabel, ds: proven24h, gas: ppGas + nppGas};
+            document.getElementById('m-ds').textContent = proven24h.toLocaleString();
+          } catch(e) {
+            console.warn('Live FOC query failed:', e);
+          }
+          """
+
+          # Insert after: setStatus('spin','Loading live data...');
+          old = "setStatus('spin','Loading live data...');"
+          new = old + live_query
+
+          if old in content:
+              content = content.replace(old, new, 1)
+              print('✓ Injected live FOC query into fetchAll')
+          else:
+              print('NOT FOUND')
+
+          with open('capacity.html', 'w') as f:
+              f.write(content)
+          print(f'Done: {len(content)} chars')
+          PYEOF
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f capacity.html
+          git commit --allow-empty -m "feat: refresh button now queries FOC Observer live for proven datasets"
+          git push
