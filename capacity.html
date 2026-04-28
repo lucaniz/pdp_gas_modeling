@@ -1201,5 +1201,34 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchNetworkGasSpacescope();
 });
 </script>
-</body>
+<!-- dataset-count-patch --><script>
+(async function patchDatasetCounts() {
+  try {
+    const r = await fetch('https://foc-observer.va.gg/sql', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        sql: 'SELECT COUNT(DISTINCT f.data_set_id) FILTER (WHERE t.data_set_id IS NULL) as active FROM fwss_data_set_created f LEFT JOIN fwss_service_terminated t ON t.data_set_id = f.data_set_id',
+        network: 'mainnet'
+      })
+    });
+    const d = await r.json();
+    const active = parseInt(d.rows[0].active);
+    const inp = document.getElementById('f-start');
+    if (inp) { inp.value = active; if (typeof runForecast === 'function') runForecast(); }
+    const el = document.getElementById('m-ds');
+    if (el) el.textContent = active.toLocaleString();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while (node = walker.nextNode()) {
+      let t = node.textContent, changed = false;
+      ['632 active datasets','630 active datasets','480 active datasets'].forEach(old => {
+        if (t.includes(old)) { t = t.split(old).join(active.toLocaleString() + ' active datasets'); changed = true; }
+      });
+      if (t.includes('~480')) { t = t.replace(/~480/g, '~' + active.toLocaleString()); changed = true; }
+      if (changed) node.textContent = t;
+    }
+  } catch(e) { console.warn('patch failed', e); }
+})();
+</script>
+<!-- /dataset-count-patch --></body>
 </html>
