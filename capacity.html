@@ -202,7 +202,7 @@ footer a{color:var(--text3)}
     <p><code>nextProvingPeriod</code> advances the proof schedule. It does not access the piece Merkle tree, so its gas cost is independent of dataset size. Across 32,393 real mainnet transactions, the gas is flat at ~130M with standard deviation ~7.7M. The empirical mean (queried live from FOC Observer) is the appropriate model.</p>
 
     <h3>6. Why FWSS cannot saturate the network alone — and what the thresholds mean</h3>
-    <p>At 475 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 24.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
+    <p>At 469 active datasets (the recent peak), FWSS proving generates roughly <strong>90 billion gas per day</strong>, or ~31 million gas per tipset. Against a target of 24.5 billion gas per tipset, this is <strong>0.13%</strong> of capacity.</p>
     <p>To reach 1% of the gas target, FWSS would need approximately 28,000 active datasets — about 60× the current level. To reach 5%, it would need ~140,000. These are the thresholds shown in Section 5 of this tool. They are not predictions — they are benchmarks that help the team understand at what scale FWSS starts contributing meaningfully to network pressure.</p>
     <p>The more relevant near-term concern is not saturation of the <em>network</em>, but saturation of specific <em>time windows</em>: if proving transactions cluster around certain epochs (as they naturally do when multiple datasets share the same proving period), they could create local spikes even at low overall load. This tool does not model intra-day clustering — it assumes uniform distribution as a baseline.</p>
 
@@ -255,7 +255,7 @@ footer a{color:var(--text3)}
 <div class="card">
   <div class="ct">How big can FWSS get? — capacity thresholds in real terms</div>
   <div class="cd">
-    Using real FWSS data: today there are <strong>475 active datasets</strong>, <strong>1.09 million pieces</strong>, <strong>~2.25 TiB</strong> of storage. Average piece size = ~2.3 MB. These numbers let us express gas thresholds in terms of actual storage capacity.
+    Using real FWSS data: today there are <strong>469 active datasets</strong>, <strong>1.09 million pieces</strong>, <strong>~2.25 TiB</strong> of storage. Average piece size = ~2.3 MB. These numbers let us express gas thresholds in terms of actual storage capacity.
   </div>
   <div id="capacity-thresholds"></div>
   <div class="note na" style="margin-top:.75rem">
@@ -335,9 +335,9 @@ footer a{color:var(--text3)}
 
 <div class="card">
   <div class="cd">
-    The mean piece count across 475 active datasets is <strong>~1,729 pieces</strong> — but this is driven almost entirely by two outlier datasets (868k and 144k pieces). The median is well below 100. Using the mean would grossly overestimate gas costs for the typical dataset. The logarithmic model means even these extreme outliers cost only ~2× more to prove than a 1-piece dataset.
+    The mean piece count across 469 active datasets is <strong>~1,729 pieces</strong> — but this is driven almost entirely by two outlier datasets (868k and 144k pieces). The median is well below 100. Using the mean would grossly overestimate gas costs for the typical dataset. The logarithmic model means even these extreme outliers cost only ~2× more to prove than a 1-piece dataset.
   </div>
-  <div class="ct">Piece count distribution — 475 active datasets (April 2026)</div>
+  <div class="ct">Piece count distribution — 469 active datasets (April 2026)</div>
   <div class="dist-bar" id="dist-bars"></div>
   <div style="display:flex;gap:4px" id="dist-labels"></div>
   <div class="g5" style="margin-top:10px">
@@ -1090,10 +1090,10 @@ try {
 
 // Real FWSS data from FOC Observer (queried 2026-04-22)
 const FWSS_REAL = {
-  datasets: 475,
-  pieces: 912238,
-  bytes: 3174809402295,
-  avgPieceBytes: 3480242,
+  datasets: 469,
+  pieces: 914721,
+  bytes: 3220489327785,
+  avgPieceBytes: 3520734,
 };
 
 async function fetchNetworkGasSpacescope(){
