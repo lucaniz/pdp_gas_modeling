@@ -633,7 +633,7 @@ let AVG_BLOCKS_PER_TIPSET = 4.7;
 const TIPSETS_PER_DAY = 2880;
 function gasTargetPerTipset(){ return GAS_TARGET_PER_BLOCK * AVG_BLOCKS_PER_TIPSET; }
 
-const PP_ALPHA = 160646304, PP_BETA = 8.485e6, NPP_GAS = 124e6;
+const PP_ALPHA = 160695228, PP_BETA = 8.485e6, NPP_GAS = 124e6;
 function ppGas(p){ return PP_ALPHA + PP_BETA * Math.log2(Math.max(1,p)); }
 
 // Real piece distribution (670 datasets, FOC Observer April 2026)
@@ -651,8 +651,7 @@ function weightedAvgGasPerDataset(){
 
 // Historical 30-day data (FOC Observer, queried 2026-04-22)
 const HIST = [
-  {day:'May 11',ds:285,gas:51793000194},
-  {day:'May 12',ds:506,gas:92452922968},
+  {day:'May 12',ds:282,gas:51691411840},
   {day:'May 13',ds:520,gas:94878251607},
   {day:'May 14',ds:524,gas:95642875975},
   {day:'May 15',ds:539,gas:98810993152},
@@ -681,7 +680,8 @@ const HIST = [
   {day:'Jun 7',ds:460,gas:88009268921},
   {day:'Jun 8',ds:464,gas:88638965519},
   {day:'Jun 9',ds:430,gas:81768126840},
-  {day:'Jun 10',ds:183,gas:34319749579},
+  {day:'Jun 10',ds:430,gas:81811437099},
+  {day:'Jun 11',ds:123,gas:23361262956},
 ];
 
 // Base fee scenarios (attoFIL) — same as calculator
